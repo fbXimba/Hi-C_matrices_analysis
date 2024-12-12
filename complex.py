@@ -438,3 +438,21 @@ plt.title("filled eigenvector 15 component distribution GM12878")
 plt.show()
 
 # %%
+#plotting the chromosomes for some eigenvalues with sections for each chromosome
+
+cmap = plt.get_cmap('gnuplot')
+colors = [cmap(i) for i in np.linspace(0, 1, 25)]
+
+#GM12878
+for i, color in enumerate(colors, start=0):
+    r=chro[dfchr["chr"][i]]
+    print(r)
+    vals=eigenvectors_GM_norm[8][r]
+    plt.plot(r ,vals, color=color)  #all chromosomes starts at 0
+    plt.fill_between(x=r ,y1=vals, color=color)
+    plt.xlabel("eigenvector 1")
+    plt.title("filled eigenvector 1 component distribution GM12878")
+plt.show()
+
+# %%
+# %%
