@@ -352,9 +352,9 @@ plt.show()
 
 def clean_indexing(matrix):
     #add Y indexes corresponding to the range 2893-2952
-    ind=list(range(2893,2952))
+    ind=list(range(2893,2953))
     for i in range(matrix.shape[0]):
-        if np.all(matrix[i] == 0):
+        if np.all(matrix[i] == 0) and i not in ind:
             ind.append(i)
     return ind
 
@@ -380,8 +380,10 @@ for key, value_list in chro.items():
 #substitute old values with new ones starting from zero and increasing
 a=0
 for key, value in chro.items():
-    value=list(range(a,a+len(value)))
-    a+=len(value)  
+    if len(value)!=0:
+        value=list(range(a,a+len(value)+1))
+        a+=len(value)  
+        chro[key]=value
 
 # %%
 #Eigenvectors analysis
@@ -441,18 +443,20 @@ plt.show()
 #plotting the chromosomes for some eigenvalues with sections for each chromosome
 
 cmap = plt.get_cmap('gnuplot')
-colors = [cmap(i) for i in np.linspace(0, 1, 25)]
+colors = [cmap(i) for i in np.linspace(0, 1, 23)]
 
+#chr_names=list(chro.keys())
 #GM12878
 for i, color in enumerate(colors, start=0):
     r=chro[dfchr["chr"][i]]
-    print(r)
-    vals=eigenvectors_GM_norm[8][r]
+    #r=chro[chr_names[i]]
+    vals=eigenvectors_GM_norm[0][r]
     plt.plot(r ,vals, color=color)  #all chromosomes starts at 0
     plt.fill_between(x=r ,y1=vals, color=color)
     plt.xlabel("eigenvector 1")
     plt.title("filled eigenvector 1 component distribution GM12878")
+    print(r)
 plt.show()
-
+#NOTE: missing last chromosome
 # %%
 # %%
