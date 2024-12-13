@@ -78,19 +78,6 @@ G_GM= nx.from_numpy_array(dataGM_normalized)
 G_KBM= nx.from_numpy_array(dataKBM_normalized)
 
 #%%
-#Adjacency matrix visualization
-#GM12878
-plt.imshow(dataGM_normalized, cmap='plasma', interpolation='none')
-plt.colorbar()
-plt.title('Adjacency Matrix GM12878')
-plt.show()
-
-#KBM7
-plt.imshow(dataKBM_normalized, cmap='gist_heat', interpolation='none')
-plt.colorbar()
-plt.title('Adjacency Matrix KBM7')
-plt.show()
-#%%
 #Strength of nodes
 t3=tm.time()
 
@@ -342,7 +329,6 @@ for eigenvectors in [[eigenvectors_GM_norm,"GM12878"], [eigenvectors_KBM_norm,"K
             plt.xlabel("eigenvector component")
             plt.title(f"{eigenvectors[1]} eigenvector {n+1} components")
         plt.show()
-#NOTE: missing last chromosome
 
 #%%
 #IPR
@@ -379,9 +365,22 @@ for i in l_ranges:
     plt.show()
     
 #%%
+#Adjacency matrix visualization
+
+def plot_adjacency_matrix(data, cell, N):
+    plt.imshow(data, cmap='plasma', interpolation='none') #plasma or gist_heat
+    plt.colorbar()
+    plt.title(f'Adjacency Matrix {cell}: with {N} values')
+    plt.show()
+    return
+
+plot_adjacency_matrix(dataGM_normalized, "GM12878", "all")
+plot_adjacency_matrix(dataKBM_normalized, "KBM7", "all")
+
+#%%
 #Computing essential matrix for a different number of eigenvectors and eigenvalues
 
-def compute_essential_matrix(eigval, eigvec, N):
+def compute_essential_matrix(eigval, eigvec, N, cell):
     # ordering in an absolute descending order 
     idx = np.argsort(np.abs(eigval))[::-1]
     # selecting top N eigenvalues and eigenvectors
@@ -399,14 +398,15 @@ def compute_essential_matrix(eigval, eigvec, N):
         A_ess += k_n * np.outer(a_n, a_n)  
     
     #creating corresponding plot
-    
-    plt.imshow(A_ess, cmap='plasma', interpolation='none')
-    plt.colorbar()
-    plt.title('Adjacency Matrix KBM7')
-    plt.show()
-    return 0
+    plot_adjacency_matrix(A_ess, cell, N)
 
-compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 10)
-compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 15)
-compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 20)
-compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 25)
+    return 
+
+#GM12878
+compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 10, "GM12878")
+compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 15, "GM12878")
+compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 20, "GM12878")
+compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 25, "GM12878")
+
+
+# %%
