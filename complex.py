@@ -465,7 +465,7 @@ plt.title("IPR comparison GM12878 and KBM7 - first 25 eigenvectors")
 plt.legend(loc="best")
 plt.show()
 
-# all eigenvectors and cuts in 3 ranges for better visualization
+# IPR values of all eigenvectors and cuts in 3 ranges for better visualization
 l_ranges=[[0,2889, "all"],[0,199, "1-200"],[899,1249, "900-1250"],[2749,2889, "2750-2890"]]
 for i in l_ranges:
     plt.semilogy(list(range(i[0]+1,i[1]+1)), IPR_GM[i[0]:i[1]],lw=0.6, ls='-', color="r", label="GM12878")
@@ -475,4 +475,36 @@ for i in l_ranges:
     plt.title(f"IPR comparison GM12878 and KBM7 - {i[2]} eigenvectors")
     plt.legend(loc="best")
     plt.show()
+    
 #%%
+# Computing essential matrix for a different number of eigenvectors and eigenvalues
+
+def compute_essential_matrix(eigval, eigvec, N):
+    # ordering in an absolute descending order 
+    idx = np.argsort(np.abs(eigval))[::-1]
+    # selecting top N eigenvalues and eigenvectors
+    eigval_topN = eigval[idx][:N]
+    eigvec_topN = eigvec[idx][:N]
+    
+    A_ess = np.zeros((len(eigval), len(eigval)))
+    
+    # compute the essential matrix using the formula
+    for n in range(N):
+        k_n = eigval_topN[n]
+        a_n = eigvec_topN[n]
+        
+        # compute the contribution of eigenvector n to the essential matrix
+        A_ess += k_n * np.outer(a_n, a_n)  
+    
+    #creating corresponding plot
+    
+    plt.imshow(A_ess, cmap='plasma', interpolation='none')
+    plt.colorbar()
+    plt.title('Adjacency Matrix KBM7')
+    plt.show()
+    return 0
+
+compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 10)
+compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 15)
+compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 20)
+compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 25)
