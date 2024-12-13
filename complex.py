@@ -245,16 +245,6 @@ print(np.max(eigenvalues_KBM_norm))
 eigenvals_KBM=np.sort(eigenvalues_KBM_norm)[::-1]
 eigenvectors_KBM_norm=np.transpose(eigenvectors_KBM_norm)
 eigenvectors_KBM_norm=eigenvectors_KBM_norm[::-1]
-#%%
-#Checking that the eigenvalues and eigenvenctors found return the initial matrix
-
-# Construct the diagonal matrix from the eigenvalues
-D = np.diag(eigenvalues_GM_norm)
-
-# Reconstruct the original matrix using the eigen decomposition formula A = PDP^-1
-P = eigenvectors_GM_norm
-P_inv = np.linalg.inv(P)
-A = P @ D @ P_inv
 
 #%%
 #Histogram of eigenvalues
@@ -277,59 +267,24 @@ plt.show()
 #%%
 #Spectral density comparison
 
-plt.hist(eigvals_GM, bins=800, density = True, histtype= 'step', label='GM12878')
-plt.hist(eigvals_KBM, bins=800, density = True, histtype= 'step', label='KBM7')
-plt.xlim(min(min(eigenvalues_GM_norm), min(eigenvalues_KBM_norm)),100)
+plt.hist(eigvals_GM[eigvals_GM<100], bins=150, density = True, histtype= 'step', label='GM12878')
+plt.hist(eigvals_KBM[eigvals_KBM<100], bins=150, density = True, histtype= 'step', label='KBM7')
 plt.legend(loc="best")
 plt.xlabel("eigenvalues")
 plt.ylabel("Density")
-plt.title("SPectral density comparison")
+plt.title("Spectral density comparison")
 plt.show()
 #%%
 #Eigenvectors component distribution
+#GM12878 and KBM7, eigenvectors 1, 2, 20 and 100
 
-#GM12878
-plt.hist(eigenvectors_GM_norm[0], bins=80)
-plt.xlabel("eigenvector 1")
-plt.title("eigenvector 1 component distribution GM12878")
-plt.show()
-
-
-plt.hist(eigenvectors_GM_norm[1], bins=80)
-plt.xlabel("eigenvector 2")
-plt.title("eigenvector 2 component distribution GM12878")
-plt.show()
-
-plt.hist(eigenvectors_GM_norm[19], bins=80)
-plt.xlabel("eigenvector 20")
-plt.title("eigenvector 20 component distribution GM12878")
-plt.show()
-
-plt.hist(eigenvectors_GM_norm[99], bins=80)
-plt.xlabel("eigenvector 100")
-plt.title("eigenvector 100 component distribution GM12878")
-plt.show()
-
-#%%
-plt.hist(eigenvectors_KBM_norm[0], bins=80)
-plt.xlabel("eigenvector 1")
-plt.title("eigenvector 1 component distribution KBM7")
-plt.show()
-
-plt.hist(eigenvectors_KBM_norm[1], bins=80)
-plt.xlabel("eigenvector 2")
-plt.title("eigenvector 2 component distribution KBM7")
-plt.show()
-
-plt.hist(eigenvectors_KBM_norm[19], bins=80)
-plt.xlabel("eigenvector 20")
-plt.title("eigenvector 20 component distribution KBM7")
-plt.show()
-
-plt.hist(eigenvectors_KBM_norm[99], bins=80)
-plt.xlabel("eigenvector 100")
-plt.title("eigenvector 100 component distribution KBM7")
-plt.show()
+for eigenvectors in [[eigenvectors_GM_norm,"GM12878"], [eigenvectors_KBM_norm,"KBM7"]]:
+    #GM12878 and KBM7
+    for n in [0,1,19,99]:
+        #eigenvectors 1, 2, 20 and 100
+        plt.hist(eigenvectors[0][n], bins=80)
+        plt.title(f"{eigenvectors[1]} eigenvector {n+1} distribution")
+        plt.show()
 
 #%%
 #modify indexing to locate chromoseomes
@@ -344,9 +299,6 @@ def clean_indexing(matrix):
 
 ind_GM=clean_indexing(dataGM0)
 ind_KBM=clean_indexing(dataKBM0)
-
-#%%
-#modify indexing to locate chromoseomes
 
 ind_chr=[]
 dfchr=pd.read_csv(dir_data+"metadata_GM12878_KBM7.csv",header=0)
@@ -371,75 +323,25 @@ for key, value in chro.items():
 
 # %%
 #Eigenvectors analysis
-#plotting the chromosomes for some eigenvalues
-
-#first eigenvector and component graph
-#GM12878
-#lambda1_GM = eigenvectors_GM_norm[0]
-
-plt.plot(eigenvectors_GM_norm[0])
-plt.show()
-
-plt.plot(eigenvectors_GM_norm[0])
-plt.fill_between(x=range(2889) ,y1=eigenvectors_GM_norm[0])
-plt.xlabel("eigenvector 1")
-plt.title("filled eigenvector 1 component distribution GM12878")
-plt.show()
-
-plt.plot(eigenvectors_GM_norm[8])
-plt.fill_between(x=range(2889) ,y1=eigenvectors_GM_norm[8])
-plt.xlabel("eigenvector 9")
-plt.title("filled eigenvector 9 component distribution GM12878")
-plt.show()
-
-plt.plot(eigenvectors_GM_norm[14])
-plt.fill_between(x=range(2889) ,y1=eigenvectors_GM_norm[14])
-plt.xlabel("eigenvector 15")
-plt.title("filled eigenvector 15 component distribution GM12878")
-plt.show()
-
-# %%
-#KBM7
-#lambda1_KBM = eigenvectors_KBM_norm[0]
-
-plt.plot(eigenvectors_KBM_norm[0])
-plt.show()
-
-plt.plot(eigenvectors_KBM_norm[0])
-plt.fill_between(x=range(2889) ,y1=eigenvectors_KBM_norm[0])
-plt.xlabel("eigenvector 1")
-plt.title("filled eigenvector 1 component distribution GM12878")
-plt.show()
-
-plt.plot(eigenvectors_KBM_norm[8])
-plt.fill_between(x=range(2889) ,y1=eigenvectors_KBM_norm[8])
-plt.xlabel("eigenvector 9")
-plt.title("filled eigenvector 9 component distribution GM12878")
-plt.show()
-
-plt.plot(eigenvectors_KBM_norm[14])
-plt.fill_between(x=range(2889) ,y1=eigenvectors_KBM_norm[14])
-plt.xlabel("eigenvector 15")
-plt.title("filled eigenvector 15 component distribution GM12878")
-plt.show()
-
-# %%
+#GM12878 and KBM7, eigenvectors 1, 9 and 15
 #plotting the chromosomes for some eigenvalues with sections for each chromosome
 
 cmap = plt.get_cmap('nipy_spectral')
 colors = [cmap(i) for i in np.linspace(0, 1, 23)]
 
-#chr_names=list(chro.keys())
-#GM12878
-for i, color in enumerate(colors, start=0):
-    r=chro[dfchr["chr"][i]]
-    #r=chro[chr_names[i]]
-    vals=eigenvectors_GM_norm[0][r]
-    plt.plot(r ,vals, color=color)  #all chromosomes starts at 0
-    plt.fill_between(x=r ,y1=vals, color=color)
-    plt.xlabel("eigenvector 1")
-    plt.title("filled eigenvector 1 component distribution GM12878")
-plt.show()
+for eigenvectors in [[eigenvectors_GM_norm,"GM12878"], [eigenvectors_KBM_norm,"KBM7"]]:
+    #GM12878 and KBM7
+    for n in [0,8,14]:
+        #eigenvectors 1, 9 and 15
+        for i, color in enumerate(colors, start=0):
+            #each chromosome
+            r=chro[dfchr["chr"][i]]
+            vals=(eigenvectors[0])[n][r]
+            plt.plot(r ,vals, color=color)  #all chromosomes starts at 0
+            plt.fill_between(x=r ,y1=vals, color=color)
+            plt.xlabel("eigenvector component")
+            plt.title(f"{eigenvectors[1]} eigenvector {n+1} components")
+        plt.show()
 #NOTE: missing last chromosome
 
 #%%
@@ -465,7 +367,7 @@ plt.title("IPR comparison GM12878 and KBM7 - first 25 eigenvectors")
 plt.legend(loc="best")
 plt.show()
 
-# IPR values of all eigenvectors and cuts in 3 ranges for better visualization
+#IPR values of all eigenvectors and cuts in 3 ranges for better visualization
 l_ranges=[[0,2889, "all"],[0,199, "1-200"],[899,1249, "900-1250"],[2749,2889, "2750-2890"]]
 for i in l_ranges:
     plt.semilogy(list(range(i[0]+1,i[1]+1)), IPR_GM[i[0]:i[1]],lw=0.6, ls='-', color="r", label="GM12878")
@@ -477,7 +379,7 @@ for i in l_ranges:
     plt.show()
     
 #%%
-# Computing essential matrix for a different number of eigenvectors and eigenvalues
+#Computing essential matrix for a different number of eigenvectors and eigenvalues
 
 def compute_essential_matrix(eigval, eigvec, N):
     # ordering in an absolute descending order 
