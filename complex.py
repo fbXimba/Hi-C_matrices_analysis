@@ -204,6 +204,7 @@ np.save("clustering_resultsGM.npy", clustering_resultsGM)
 
 #%%
 np.save("clustering_resultsKBM.npy", clustering_resultsKBM)
+
 #%%
 # Load the NumPy binary file
 clustering_resultsGM= np.load("clustering_resultsGM.npy")
@@ -284,16 +285,6 @@ plt.xlabel("eigenvalues")
 plt.ylabel("Density")
 plt.title("SPectral density comparison")
 plt.show()
-
-#%%
-#IPR
-
-#GM12878
-IPR_GM = np.sum(eigenvectors_GM_norm**4, axis=0)
-
-#KBM7
-IPR_KBM = np.sum(eigenvectors_KBM_norm**4, axis=0)
-
 #%%
 #Eigenvectors component distribution
 
@@ -341,13 +332,6 @@ plt.title("eigenvector 100 component distribution KBM7")
 plt.show()
 
 #%%
-#IPR comparison
-
-plt.semilogy(IPR_GM, ls='-', color="r")
-plt.semilogy(IPR_KBM, ls='-', color="b")
-plt.show()
-
-#%%
 #modify indexing to locate chromoseomes
 
 def clean_indexing(matrix):
@@ -371,15 +355,12 @@ dfchr=pd.read_csv(dir_data+"metadata_GM12878_KBM7.csv",header=0)
 for i in range(len(dfchr)):
     ind_chr.append(list(range(dfchr["start"][i],dfchr["end"][i]+1)))
     
-    
 chro = dict(zip(dfchr["chr"], ind_chr))  
 
-#%%
 #remove the indexes of the Y chromosome and the isolated nodes
 for key, value_list in chro.items():
     chro[key] = [item for item in value_list if item not in ind_GM]
 
-#%%
 #substitute old values with new ones starting from zero and increasing
 a=0
 for key, value in chro.items():
@@ -445,7 +426,7 @@ plt.show()
 # %%
 #plotting the chromosomes for some eigenvalues with sections for each chromosome
 
-cmap = plt.get_cmap('gnuplot')
+cmap = plt.get_cmap('nipy_spectral')
 colors = [cmap(i) for i in np.linspace(0, 1, 23)]
 
 #chr_names=list(chro.keys())
@@ -458,8 +439,40 @@ for i, color in enumerate(colors, start=0):
     plt.fill_between(x=r ,y1=vals, color=color)
     plt.xlabel("eigenvector 1")
     plt.title("filled eigenvector 1 component distribution GM12878")
-    print(r)
 plt.show()
 #NOTE: missing last chromosome
-# %%
-# %%
+
+#%%
+#IPR
+
+#GM12878
+IPR_GM = np.sum(eigenvectors_GM_norm**4, axis=1)
+
+#KBM7
+IPR_KBM = np.sum(eigenvectors_KBM_norm**4, axis=1)
+
+#%%
+#IPR comparison
+
+#IPR values of the first 25 eigenvectors of GM12878 and KBM7
+plt.scatter(list(range(1,26)),IPR_GM[:25], s=5, color="r", label="GM12878")
+plt.plot(list(range(1,26)),IPR_GM[:25],lw=0.1, color="r")
+plt.scatter(list(range(1,26)),IPR_KBM[:25], s=5, color="b", label="KBM7")
+plt.plot(list(range(1,26)),IPR_KBM[:25],lw=0.1, color="b")
+plt.xlabel("eigenvectors")
+plt.ylabel("IPR")
+plt.title("IPR comparison GM12878 and KBM7 - first 25 eigenvectors")
+plt.legend(loc="best")
+plt.show()
+
+# all eigenvectors and cuts in 3 ranges for better visualization
+l_ranges=[[0,2889, "all"],[0,199, "1-200"],[899,1249, "900-1250"],[2749,2889, "2750-2890"]]
+for i in l_ranges:
+    plt.semilogy(list(range(i[0]+1,i[1]+1)), IPR_GM[i[0]:i[1]],lw=0.6, ls='-', color="r", label="GM12878")
+    plt.semilogy(list(range(i[0]+1,i[1]+1)), IPR_KBM[i[0]:i[1]],lw=0.6, ls='-', color="b", label="KBM7")
+    plt.xlabel("eigenvectors")
+    plt.ylabel("log10(IPR)")
+    plt.title(f"IPR comparison GM12878 and KBM7 - {i[2]} eigenvectors")
+    plt.legend(loc="best")
+    plt.show()
+#%%
