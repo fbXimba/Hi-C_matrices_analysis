@@ -369,19 +369,22 @@ dfchr=pd.read_csv(dir_data+"metadata_GM12878_KBM7.csv",header=0)
 
 #create a dictionary with the indexes of the chromosomes
 for i in range(len(dfchr)):
-    ind_chr.append(list(range(dfchr["start"][i],dfchr["end"][i])))
-   
+    ind_chr.append(list(range(dfchr["start"][i],dfchr["end"][i]+1)))
+    
+    
 chro = dict(zip(dfchr["chr"], ind_chr))  
 
+#%%
 #remove the indexes of the Y chromosome and the isolated nodes
 for key, value_list in chro.items():
     chro[key] = [item for item in value_list if item not in ind_GM]
 
+#%%
 #substitute old values with new ones starting from zero and increasing
 a=0
 for key, value in chro.items():
     if len(value)!=0:
-        value=list(range(a,a+len(value)+1))
+        value=list(range(a,a+len(value)))
         a+=len(value)  
         chro[key]=value
 
