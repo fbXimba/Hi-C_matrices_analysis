@@ -191,17 +191,17 @@ eigenvectors_KBM_norm=eigenvectors_KBM_norm[::-1]
 #%%
 #Histogram of eigenvalues
 #GM12878
-eigvals_GM = np.delete(eigenvalues_GM_norm, 2888)
+eigvals_GM = np.delete(eigenvalues_GM_norm, 0)
 
-plt.hist(eigvals_GM, bins=100)
+plt.hist(eigvals_GM[eigvals_GM<500], bins=100)
 plt.xlabel("eigenvalues_GM")
 plt.title("histogram eigenvalues GM")
 plt.show()
 
 #KBM7
-eigvals_KBM = np.delete(eigenvalues_KBM_norm, 2888)
+eigvals_KBM = np.delete(eigenvalues_KBM_norm, 0)
 
-plt.hist(eigvals_KBM, bins=100)
+plt.hist(eigvals_KBM[eigvals_KBM<500], bins=100)
 plt.xlabel("eigenvalues_KBM")
 plt.title("histogram eigenvalues KBM")
 plt.show()
@@ -217,6 +217,7 @@ plt.xlabel("eigenvalues")
 plt.ylabel("Density")
 plt.title("Spectral density comparison")
 plt.show()
+
 #%%
 #Eigenvectors component distribution
 #GM12878 and KBM7, eigenvectors 1, 2, 20 and 100
@@ -248,13 +249,15 @@ chro = dict(zip(dfchr["chr"], ind_chr))
 #remove the indexes of the Y chromosome and the isolated nodes
 a=0
 for key, value in chro.items():
-    chro[key] = [item for item in value if item not in ind_GM]
+    new_values=[item for item in value if item not in ind_GM]
     #substitute old values with new ones starting from zero and increasing
-    if len(value)!=0:
-        value=list(range(a,a+len(value)))
-        a+=len(value)  
-        chro[key]=value    
-
+    if len(new_values)!=0:
+        new_values=list(range(a,a+len(new_values)))
+        a+=len(new_values)  
+        chro[key]=new_values
+    else:
+        chro[key]=[]
+     
 # %%
 #Eigenvectors analysis
 #GM12878 and KBM7, eigenvectors 1, 9 and 15
