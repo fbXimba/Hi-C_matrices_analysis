@@ -72,8 +72,9 @@ def clean_indexing(matrix):
     ind=list(range(2893,2953))
     #removing isolated nodes indexes
     for i in range(matrix.shape[0]):
+        #NOTE: i+1 bc this index starts from 1 and i from 0
         if np.all(matrix[i] == 0) and i not in ind:
-            ind.append(i)
+            ind.append(i+1)
     return ind
 
 
