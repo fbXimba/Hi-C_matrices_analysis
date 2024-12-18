@@ -96,7 +96,7 @@ def compute_essential_matrix(eigval, eigvec, N, cell):
     # selecting top N eigenvalues and eigenvectors
     eigval_topN = eigval[idx][:N]
     eigvec_topN = eigvec[idx][:N]
-    print(eigval_topN)
+    
     A_ess = np.zeros((len(eigval), len(eigval)))
     
     #compute the essential matrix using the formula
@@ -111,3 +111,11 @@ def compute_essential_matrix(eigval, eigvec, N, cell):
     plot_adjacency_matrix(A_ess, cell, N)
 
     return 
+
+############################################################################################
+#thresholding with mask
+
+def thresholding(data, t):
+    mask=np.where(data>t,1,0)
+    
+    return mask
