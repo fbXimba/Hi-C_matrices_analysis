@@ -13,8 +13,8 @@ import time as tm
 #from multiprocessing import Pool
 #from tqdm import tqdm 
 from numpy import linalg as LA
-import utils as utils
-import construction_site as cs
+import local_utils as utils
+import local_construction_site as cs
 
 #NOTE: This code is currently a work in progress in its initial stages. NO BITCHING.
 
@@ -268,7 +268,7 @@ eigenvectors_GM_norm=eigenvectors_GM_norm[::-1]
 eigenvalues_KBM_norm, eigenvectors_KBM_norm = LA.eigh(dataKBM_normalized)
 print(np.max(eigenvalues_KBM_norm))
 
-eigenvalues_KBM=np.sort(eigenvalues_KBM_norm)[::-1]
+eigenvalues_KBM_norm=np.sort(eigenvalues_KBM_norm)[::-1]
 eigenvectors_KBM_norm=np.transpose(eigenvectors_KBM_norm)
 eigenvectors_KBM_norm=eigenvectors_KBM_norm[::-1]
 
@@ -276,7 +276,7 @@ eigenvectors_KBM_norm=eigenvectors_KBM_norm[::-1]
 eigenvalues_HMEC_norm, eigenvectors_HMEC_norm = LA.eigh(dataHMEC_normalized)
 print(np.max(eigenvalues_HMEC_norm))
 
-eigenvalues_HMEC=np.sort(eigenvalues_HMEC_norm)[::-1]
+eigenvalues_HMEC_norm=np.sort(eigenvalues_HMEC_norm)[::-1]
 eigenvectors_HMEC_norm=np.transpose(eigenvectors_HMEC_norm)
 eigenvectors_HMEC_norm=eigenvectors_HMEC_norm[::-1]
 
@@ -284,7 +284,7 @@ eigenvectors_HMEC_norm=eigenvectors_HMEC_norm[::-1]
 eigenvalues_NHEK_norm, eigenvectors_NHEK_norm = LA.eigh(dataNHEK_normalized)
 print(np.max(eigenvalues_NHEK_norm))
 
-eigenvalues_NHEK=np.sort(eigenvalues_NHEK_norm)[::-1]
+eigenvalues_NHEK_norm=np.sort(eigenvalues_NHEK_norm)[::-1]
 eigenvectors_NHEK_norm=np.transpose(eigenvectors_NHEK_norm)
 eigenvectors_NHEK_norm=eigenvectors_NHEK_norm[::-1]
 
@@ -379,8 +379,10 @@ chro = dict(zip(dfchr["chr"], ind_chr))
 
 #remove the indexes of the Y chromosome and the isolated nodes
 a=0
+
 for key, value in chro.items():
-    new_values=[item for item in value if item not in ind_GM]
+    up_ind_GM = [x + 1 for x in ind_GM]
+    new_values=[item for item in value if item not in up_ind_GM]
     #substitute old values with new ones starting from zero and increasing
     if len(new_values)!=0:
         new_values=list(range(a,a+len(new_values)))
@@ -488,17 +490,20 @@ utils.compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 15, "G
 utils.compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 20, "GM12878")
 utils.compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 25, "GM12878")
 
-#%%
-#NOTE: NOT WORKING
+#KBM7
+utils.compute_essential_matrix(eigenvalues_KBM_norm, eigenvectors_KBM_norm, 10, "KBM7")
+utils.compute_essential_matrix(eigenvalues_KBM_norm, eigenvectors_KBM_norm, 15, "KBM7")
+utils.compute_essential_matrix(eigenvalues_KBM_norm, eigenvectors_KBM_norm, 20, "KBM7")
+utils.compute_essential_matrix(eigenvalues_KBM_norm, eigenvectors_KBM_norm, 25, "KBM7")
+
 #HMEC
-utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 10, "GM12878")
-utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 15, "GM12878")
-utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 20, "GM12878")
-utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 25, "GM12878")
+utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 10, "HMEC")
+utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 15, "HMEC")
+utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 20, "HMEC")
+utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 25, "HMEC")
 
 #NHEK
-utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 10, "GM12878")
-utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 15, "GM12878")
-utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 20, "GM12878")
-utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 25, "GM12878")
-# %%
+utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 10, "NHEK")
+utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 15, "NHEK")
+utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 20, "NHEK")
+utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 25, "NHEK")
