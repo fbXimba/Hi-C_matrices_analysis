@@ -13,8 +13,10 @@ import time as tm
 #from multiprocessing import Pool
 #from tqdm import tqdm 
 from numpy import linalg as LA
-import local_utils as utils
-import local_construction_site as cs
+import utils
+import construction_site as cs
+import leidenalg
+import igraph as ig
 
 #NOTE: This code is currently a work in progress in its initial stages. NO BITCHING.
 
@@ -495,15 +497,56 @@ utils.compute_essential_matrix(eigenvalues_KBM_norm, eigenvectors_KBM_norm, 10, 
 utils.compute_essential_matrix(eigenvalues_KBM_norm, eigenvectors_KBM_norm, 15, "KBM7")
 utils.compute_essential_matrix(eigenvalues_KBM_norm, eigenvectors_KBM_norm, 20, "KBM7")
 utils.compute_essential_matrix(eigenvalues_KBM_norm, eigenvectors_KBM_norm, 25, "KBM7")
+utils.compute_essential_matrix(eigenvalues_KBM_norm, eigenvectors_KBM_norm, 30, "KBM7")
 
 #HMEC
 utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 10, "HMEC")
 utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 15, "HMEC")
 utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 20, "HMEC")
 utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 25, "HMEC")
+utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 35, "HMEC")
 
 #NHEK
 utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 10, "NHEK")
 utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 15, "NHEK")
 utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 20, "NHEK")
 utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 25, "NHEK")
+utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 37, "NHEK")
+
+# %%
+#Thresholding for binary matrix
+
+#GM12878
+dataGM_bin=utils.thresholding(dataGM_normalized, 4.7)
+#utils.plot_adjacency_matrix(dataGM_bin, "GM12878", "threshold 4.7")
+
+#KBM7
+dataKBM_bin=utils.thresholding(dataKBM_normalized, 4.7)
+#utils.plot_adjacency_matrix(dataKBM_bin, "KBM7", "threshold 4.7")
+
+#HMEC
+dataHMEC_bin=utils.thresholding(dataHMEC_normalized, 4.1)
+#utils.plot_adjacency_matrix(dataHMEC_bin, "HMEC", "threshold 4.1")
+
+#NHEK
+dataNHEK_bin=utils.thresholding(dataNHEK_normalized, 4.3)
+#utils.plot_adjacency_matrix(dataNHEK_bin, "NHEK", "threshold 4.3")
+
+# %%
+#binary graphs and clustering
+
+#binary graphs creation
+Gbin_GM= ig.Graph.Adjacency(dataGM_bin, mode="undirected")
+Gbin_KBM7= ig.Graph.Adjacency(dataKBM_bin, mode="undirected")
+Gbin_HMEC= ig.Graph.Adjacency(dataHMEC_bin, mode="undirected")
+Gbin_NHEK= ig.Graph.Adjacency(dataNHEK_bin, mode="undirected")
+
+#clustering with Leiden algorithm
+part_GM = leidenalg.find_partition(Gbin_GM, leidenalg.ModularityVertexPartition)
+part_KBM = leidenalg.find_partition(Gbin_KBM7, leidenalg.ModularityVertexPartition)
+part_HMEC = leidenalg.find_partition(Gbin_HMEC, leidenalg.ModularityVertexPartition)
+part_NHEK = leidenalg.find_partition(Gbin_NHEK, leidenalg.ModularityVertexPartition)
+
+#%%
+ig.plot(part_GM)
+# %%
