@@ -14,20 +14,21 @@ import time as tm
 #from tqdm import tqdm 
 from numpy import linalg as LA
 import utils as utils
+import construction_site as cs
 
 #NOTE: This code is currently a work in progress in its initial stages. NO BITCHING.
 
 #%%
-#directories and data import
+#directories and data import/creation
 t0=tm.time()
 
-#get working ditectory and create Data , HMEC and NHRK directories
+#get current ditectory and create Data , HMEC and NHRK directories
 dir_home=os.getcwd()
 dir_data=dir_home+"/Data/"
 dir_HMEC=dir_data+"raw_HMEC_1Mb/"
 dir_NHEK=dir_data+"raw_NHEK_1Mb/"
 
-#read data from GM12878 and KBM7
+#read data GM12878 and KBM7 and create matrices
 #GM12878 healthy cells
 dfGM=pd.read_csv(dir_data+"raw_GM12878_1Mb.csv",header=None)
 dataGM0=dfGM.to_numpy()
@@ -35,6 +36,19 @@ dataGM0=dfGM.to_numpy()
 #KBM7 aberrant cells
 dfKBM=pd.read_csv(dir_data+"raw_KBM7_1Mb.csv",header=None)
 dataKBM0=dfKBM.to_numpy()
+
+#read data of HMEC and NHEK and create matrices
+chromosomes_HMEC_NHEK = cs.chromosomes()
+
+#HMEC healthy cells
+file_list_HMEC = [f for f in os.listdir(dir_HMEC)]
+
+dataHMEC0=cs.matrix_construction(file_list_HMEC, chromosomes_HMEC_NHEK, dir_HMEC)
+
+#NHEK healthy cells
+file_list_NHEK = [f for f in os.listdir(dir_NHEK)]
+
+dataNHEK0=cs.matrix_construction(file_list_NHEK, chromosomes_HMEC_NHEK, dir_NHEK)
 
 #%%
 #Data cleaning:
@@ -49,6 +63,12 @@ dataGM=utils.data_cleaning(dataGM0)
 #KBM7
 dataKBM=utils.data_cleaning(dataKBM0)
 
+#HMEC
+dataHMEC=utils.data_cleaning(dataHMEC0)
+
+#NHEK
+dataNHEK=utils.data_cleaning(dataNHEK0)
+
 #normalization = log_scale for better visualization
 #log1p does log10(1+x) in order to avoid problems where there's a 0
 
@@ -57,6 +77,12 @@ dataGM_normalized = np.log1p(dataGM)
 
 #KBM7
 dataKBM_normalized = np.log1p(dataKBM)
+
+#HMEC
+dataHMEC_normalized = np.log1p(dataHMEC)
+
+#NHEK
+dataNHEK_normalized = np.log1p(dataNHEK)
 
 #%%
 #Creation of graphs
@@ -68,6 +94,12 @@ G_GM= nx.from_numpy_array(dataGM_normalized)
 
 #KBM7
 G_KBM= nx.from_numpy_array(dataKBM_normalized)
+
+#HMEC
+G_HMEC= nx.from_numpy_array(dataHMEC_normalized)
+
+#NHEK
+G_NHEK= nx.from_numpy_array(dataNHEK_normalized)
 
 #%%
 #Strength of nodes
@@ -81,22 +113,40 @@ print(np.min(str_GM), np.max(str_GM), np.mean(str_GM)) #check min and max values
 str_KBM=utils.stregth(G_KBM)
 print(np.min(str_KBM), np.max(str_KBM), np.mean(str_KBM)) 
 
+#HMEC
+str_HMEC=utils.stregth(G_HMEC)
+print(np.min(str_HMEC), np.max(str_HMEC), np.mean(str_HMEC))
+
+#NHEK
+str_NHEK=utils.stregth(G_NHEK)
+print(np.min(str_NHEK), np.max(str_NHEK), np.mean(str_NHEK))
+
 #%%
 #Histograms of strength
 t4=tm.time()
 
 #GM12878
 plt.hist(str_GM, bins=400)
-plt.xlim(-1, np.max(str_GM))
 plt.xlabel("log_10(strength)")
 plt.title("strength histogram GM normalized")
 plt.show()
 
 #KBM7
 plt.hist(str_KBM, bins=400)
-plt.xlim(-1, np.max(str_KBM))
 plt.xlabel("log_10(strength)")
 plt.title("strength histogram KBM normalized")
+plt.show()
+
+#HMEC
+plt.hist(str_HMEC, bins=400)
+plt.xlabel("log_10(strength)")
+plt.title("strength histogram HMEC normalized")
+plt.show()
+
+#NHEK
+plt.hist(str_NHEK, bins=400)
+plt.xlabel("log_10(strength)")
+plt.title("strength histogram NHEK normalized")
 plt.show()
 
 #%%
@@ -132,6 +182,34 @@ file_clustering.close()
 np.save("clustering_resultsKBM.npy", clustering_results_KBM)
 
 # %%
+#HMEC
+t5s=tm.time()
+
+clustering_results_HMEC,avg_clustering_parallel_HMEC=utils.parallel_clustering(G_HMEC)
+
+file_clustering = open("clustering_resultsHMEC.txt", "w")
+with open("clustering_resultsHMEC.txt", "w") as file:
+    for value in clustering_results_HMEC:
+        file_clustering.write(f"{value}\n")  # Each float on a new line
+file_clustering.close()
+
+np.save("clustering_resultsHMEC.npy", clustering_results_HMEC)
+
+#%%
+#NHEK
+t5t=tm.time()
+
+clustering_results_NHEK,avg_clustering_parallel_NHEK=utils.parallel_clustering(G_NHEK)
+
+file_clustering = open("clustering_resultsNHEK.txt", "w")
+with open("clustering_resultsNHEK.txt", "w") as file:
+    for value in clustering_results_NHEK:
+        file_clustering.write(f"{value}\n")  # Each float on a new line
+file_clustering.close()
+
+np.save("clustering_resultsNHEK.npy", clustering_results_NHEK)
+
+#%%
 
 # Load the results from the text file
 
@@ -151,9 +229,15 @@ np.save("clustering_resultsKBM.npy", clustering_results_KBM)
 clustering_results_GM= np.load("clustering_resultsGM.npy")
 clustering_results_KBM= np.load("clustering_resultsKBM.npy")
 
+#%%
+#NOTE: NON ANCORA OTTENUTI
+clustering_results_HMEC= np.load("clustering_resultsHMEC.npy")
+clustering_results_NHEK= np.load("clustering_resultsNHEK.npy")
+
 # %%
 #Histogram of clustering coefficients
 
+#GM12878
 #conditions for log10: remove zeros
 cl_coeff_GM=np.array(clustering_results_GM)
 cl_coeff_GM_n0=cl_coeff_GM[cl_coeff_GM>0]
@@ -184,9 +268,25 @@ eigenvectors_GM_norm=eigenvectors_GM_norm[::-1]
 eigenvalues_KBM_norm, eigenvectors_KBM_norm = LA.eigh(dataKBM_normalized)
 print(np.max(eigenvalues_KBM_norm))
 
-eigenvals_KBM=np.sort(eigenvalues_KBM_norm)[::-1]
+eigenvalues_KBM=np.sort(eigenvalues_KBM_norm)[::-1]
 eigenvectors_KBM_norm=np.transpose(eigenvectors_KBM_norm)
 eigenvectors_KBM_norm=eigenvectors_KBM_norm[::-1]
+
+#HMEC
+eigenvalues_HMEC_norm, eigenvectors_HMEC_norm = LA.eigh(dataHMEC_normalized)
+print(np.max(eigenvalues_HMEC_norm))
+
+eigenvalues_HMEC=np.sort(eigenvalues_HMEC_norm)[::-1]
+eigenvectors_HMEC_norm=np.transpose(eigenvectors_HMEC_norm)
+eigenvectors_HMEC_norm=eigenvectors_HMEC_norm[::-1]
+
+#NHEK
+eigenvalues_NHEK_norm, eigenvectors_NHEK_norm = LA.eigh(dataNHEK_normalized)
+print(np.max(eigenvalues_NHEK_norm))
+
+eigenvalues_NHEK=np.sort(eigenvalues_NHEK_norm)[::-1]
+eigenvectors_NHEK_norm=np.transpose(eigenvectors_NHEK_norm)
+eigenvectors_NHEK_norm=eigenvectors_NHEK_norm[::-1]
 
 #%%
 #Histogram of eigenvalues
@@ -206,6 +306,22 @@ plt.xlabel("eigenvalues_KBM")
 plt.title("histogram eigenvalues KBM")
 plt.show()
 
+#HMEC
+eigvals_HMEC = np.delete(eigenvalues_HMEC_norm, 0)
+
+plt.hist(eigvals_HMEC[eigvals_HMEC<500], bins=100)
+plt.xlabel("eigenvalues_HMEC")
+plt.title("histogram eigenvalues HMEC")
+plt.show()
+
+#NHEK
+eigvals_NHEK = np.delete(eigenvalues_NHEK_norm, 0)
+
+plt.hist(eigvals_NHEK[eigvals_NHEK<500], bins=100)
+plt.xlabel("eigenvalues_NHEK")
+plt.title("histogram eigenvalues NHEK")
+plt.show()
+
 #%%
 #Spectral density comparison
 t7=tm.time()
@@ -218,11 +334,22 @@ plt.ylabel("Density")
 plt.title("Spectral density comparison")
 plt.show()
 
+
+plt.hist(eigvals_GM[eigvals_GM<100], bins=150, density = True, histtype= 'step', color="r", label='GM12878')
+plt.hist(eigvals_KBM[eigvals_KBM<100], bins=150, density = True, histtype= 'step', color="b",label='KBM7')
+plt.hist(eigvals_HMEC[eigvals_HMEC<100], bins=150, density = True, histtype= 'step', color="g",label='HMEC')
+plt.hist(eigvals_NHEK[eigvals_NHEK<100], bins=150, density = True, histtype= 'step', color="y",label='NHEK')
+plt.legend(loc="best")
+plt.xlabel("eigenvalues")
+plt.ylabel("Density")
+plt.title("Spectral density comparison")
+plt.show()
+
 #%%
 #Eigenvectors component distribution
 #GM12878 and KBM7, eigenvectors 1, 2, 20 and 100
 
-for eigenvectors in [[eigenvectors_GM_norm,"GM12878"], [eigenvectors_KBM_norm,"KBM7"]]:
+for eigenvectors in [[eigenvectors_GM_norm,"GM12878"], [eigenvectors_KBM_norm,"KBM7"], [eigenvectors_HMEC_norm,"HMEC"], [eigenvectors_NHEK_norm,"NHEK"]]:
     #GM12878 and KBM7
     for n in [0,1,19,99]:
         #eigenvectors 1, 2, 20 and 100
@@ -233,9 +360,13 @@ for eigenvectors in [[eigenvectors_GM_norm,"GM12878"], [eigenvectors_KBM_norm,"K
 #%%
 #modify indexing to locate chromosomes for eigenvectors analysis
 t8=tm.time()
-
+#NOTE: FINIRE DI IMPLEMENTARE PER HMEC E NHEK
+#GM12878 and KBM7 Y=2893-2952 (from 1)
 ind_GM=utils.clean_indexing(dataGM0)
 ind_KBM=utils.clean_indexing(dataKBM0)
+#Y=2892-2952 (from 0)
+#ind_HMEC=utils.clean_indexing(dataHMEC0)
+#ind_NHEK=utils.clean_indexing(dataNHEK0)
 
 ind_chr=[]
 dfchr=pd.read_csv(dir_data+"metadata_GM12878_KBM7.csv",header=0)
@@ -290,6 +421,12 @@ IPR_GM = np.sum(eigenvectors_GM_norm**4, axis=1)
 #KBM7
 IPR_KBM = np.sum(eigenvectors_KBM_norm**4, axis=1)
 
+#HMEC
+IPR_HMEC = np.sum(eigenvectors_HMEC_norm**4, axis=1)
+
+#NHEK
+IPR_NHEK = np.sum(eigenvectors_NHEK_norm**4, axis=1)
+
 #%%
 #IPR comparison
 
@@ -304,17 +441,34 @@ plt.title("IPR comparison GM12878 and KBM7 - first 25 eigenvectors")
 plt.legend(loc="best")
 plt.show()
 
+#IPR values of the first 25 eigenvectors of GM12878, KBM7, HMEC and NHEK
+plt.scatter(list(range(1,26)),IPR_GM[:25], s=5, color="r", label="GM12878")
+plt.plot(list(range(1,26)),IPR_GM[:25],lw=0.1, color="r")
+plt.scatter(list(range(1,26)),IPR_KBM[:25], s=5, color="b", label="KBM7")
+plt.plot(list(range(1,26)),IPR_KBM[:25],lw=0.1, color="b")
+plt.scatter(list(range(1,26)),IPR_HMEC[:25], s=5, color="g", label="HMEC")
+plt.plot(list(range(1,26)),IPR_HMEC[:25],lw=0.1, color="g")
+plt.scatter(list(range(1,26)),IPR_NHEK[:25], s=5, color="y", label="NHEK")
+plt.plot(list(range(1,26)),IPR_NHEK[:25],lw=0.1, color="y")
+plt.xlabel("eigenvectors")
+plt.ylabel("IPR")
+plt.title("IPR comparison GM12878, KBM7, HMEC and NHEK - first 25 eigenvectors")
+plt.legend(loc="best")
+plt.show()
+    
 #IPR values of all eigenvectors and cuts in 3 ranges for better visualization
-l_ranges=[[0,2889, "all"],[0,199, "1-200"],[899,1249, "900-1250"],[2749,2889, "2750-2890"]]
+l_ranges=[[0,2888, "all"],[0,199, "1-200"],[899,1249, "900-1250"],[2749,2888, "2750-2890"]]
 for i in l_ranges:
     plt.semilogy(list(range(i[0]+1,i[1]+1)), IPR_GM[i[0]:i[1]],lw=0.6, ls='-', color="r", label="GM12878")
     plt.semilogy(list(range(i[0]+1,i[1]+1)), IPR_KBM[i[0]:i[1]],lw=0.6, ls='-', color="b", label="KBM7")
+    plt.semilogy(list(range(i[0]+1,i[1]+1)), IPR_HMEC[i[0]:i[1]],lw=0.6, ls='-', color="g", label="HMEC")
+    plt.semilogy(list(range(i[0]+1,i[1]+1)), IPR_NHEK[i[0]:i[1]],lw=0.6, ls='-', color="y", label="NHEK")
     plt.xlabel("eigenvectors")
     plt.ylabel("log10(IPR)")
     plt.title(f"IPR comparison GM12878 and KBM7 - {i[2]} eigenvectors")
     plt.legend(loc="best")
     plt.show()
-    
+
 #%%
 #Adjacency matrix
 t10=tm.time()
@@ -322,6 +476,8 @@ t10=tm.time()
 #Adjacency matrix visualization
 utils.plot_adjacency_matrix(dataGM_normalized, "GM12878", "all")
 utils.plot_adjacency_matrix(dataKBM_normalized, "KBM7", "all")
+utils.plot_adjacency_matrix(dataHMEC_normalized, "HMEC", "all")
+utils.plot_adjacency_matrix(dataNHEK_normalized, "NHEK", "all")
 
 #%%
 #Computing essential matrix for a different number of eigenvectors and eigenvalues
@@ -332,4 +488,17 @@ utils.compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 15, "G
 utils.compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 20, "GM12878")
 utils.compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 25, "GM12878")
 
+#%%
+#NOTE: NOT WORKING
+#HMEC
+utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 10, "GM12878")
+utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 15, "GM12878")
+utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 20, "GM12878")
+utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 25, "GM12878")
+
+#NHEK
+utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 10, "GM12878")
+utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 15, "GM12878")
+utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 20, "GM12878")
+utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 25, "GM12878")
 # %%
