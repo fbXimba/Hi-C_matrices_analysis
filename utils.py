@@ -69,12 +69,11 @@ def parallel_clustering(G):
 
 def clean_indexing(matrix):
     #add Y indexes corresponding to the range 2893-2952
-    ind=list(range(2893,2953))
+    ind=list(range(2892,2952))
     #removing isolated nodes indexes
     for i in range(matrix.shape[0]):
-        #NOTE: i+1 bc this index starts from 1 and i from 0
         if np.all(matrix[i] == 0) and i not in ind:
-            ind.append(i+1)
+            ind.append(i)
     return ind
 
 
@@ -97,7 +96,7 @@ def compute_essential_matrix(eigval, eigvec, N, cell):
     # selecting top N eigenvalues and eigenvectors
     eigval_topN = eigval[idx][:N]
     eigvec_topN = eigvec[idx][:N]
-    
+    print(eigval_topN)
     A_ess = np.zeros((len(eigval), len(eigval)))
     
     #compute the essential matrix using the formula
