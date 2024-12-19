@@ -13,8 +13,8 @@ import time as tm
 #from multiprocessing import Pool
 #from tqdm import tqdm 
 from numpy import linalg as LA
-import local_utils as utils
-import local_construction_site as cs
+import utils as utils
+import construction_site as cs
 import leidenalg
 import igraph as ig
 
@@ -364,34 +364,13 @@ for eigenvectors in [[eigenvectors_GM_norm,"GM12878"], [eigenvectors_KBM_norm,"K
 t8=tm.time()
 #NOTE: FINIRE DI IMPLEMENTARE PER HMEC E NHEK
 #GM12878 and KBM7 Y=2893-2952 (from 1)
-ind_GM=utils.clean_indexing(dataGM0)
-ind_KBM=utils.clean_indexing(dataKBM0)
-#Y=2892-2952 (from 0)
-#ind_HMEC=utils.clean_indexing(dataHMEC0)
-#ind_NHEK=utils.clean_indexing(dataNHEK0)
 
-ind_chr=[]
 dfchr=pd.read_csv(dir_data+"metadata_GM12878_KBM7.csv",header=0)
 
-#create a dictionary with the indexes of the chromosomes
-for i in range(len(dfchr)):
-    ind_chr.append(list(range(dfchr["start"][i],dfchr["end"][i]+1)))
-    
-chro = dict(zip(dfchr["chr"], ind_chr)) 
+chro1=utils.dict_indexing(dataGM0,dfchr["chr"],dfchr["start"],dfchr["end"])
 
-#remove the indexes of the Y chromosome and the isolated nodes
-a=0
-
-for key, value in chro.items():
-    up_ind_GM = [x + 1 for x in ind_GM]
-    new_values=[item for item in value if item not in up_ind_GM]
-    #substitute old values with new ones starting from zero and increasing
-    if len(new_values)!=0:
-        new_values=list(range(a,a+len(new_values)))
-        a+=len(new_values)  
-        chro[key]=new_values
-    else:
-        chro[key]=[]
+chro2=utils.dict_indexing(dataHMEC0,chromosomes_HMEC_NHEK[:,0],chromosomes_HMEC_NHEK[:,1],chromosomes_HMEC_NHEK[:,2])
+   
      
 # %%
 #Eigenvectors analysis
@@ -407,7 +386,7 @@ for eigenvectors in [[eigenvectors_GM_norm,"GM12878"], [eigenvectors_KBM_norm,"K
         #eigenvectors 1, 9 and 15
         for i, color in enumerate(colors, start=0):
             #each chromosome
-            r=chro[dfchr["chr"][i]]
+            r=chro1[dfchr["chr"][i]]
             vals=(eigenvectors[0])[n][r]
             plt.plot(r ,vals, color=color)  #all chromosomes starts at 0
             plt.fill_between(x=r ,y1=vals, color=color)
@@ -589,3 +568,13 @@ utils.cluster_view(community_NHEK, "NHEK")
 diff_M = np.subtract(B, A)
 
 utils.plot_adjacency_matrix(diff_M, "KBM7 - GM12878", "all", 'gnuplot2')
+
+#%%
+#scatter plot of clusters 
+#clusters visually divided and different colors for each chromosome
+#necesseary to create chromosomes dictionary cho1 and chro2: cell at line 362
+
+utils.cluster_scatter(part_GM, chro1, dfchr["chr"], "GM12878")
+utils.cluster_scatter(part_KBM, chro1, dfchr["chr"], "KBM7")
+utils.cluster_scatter(part_HMEC, chro2, chromosomes_HMEC_NHEK[:,0], "HMEC")
+utils.cluster_scatter(part_NHEK, chro2, chromosomes_HMEC_NHEK[:,0], "NHEK")
