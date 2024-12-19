@@ -21,7 +21,45 @@ def data_cleaning(data0):
 
     return data
 
+#indexing clean
 
+def dict_indexing(data0,chrom,start,end):
+    #chrom:
+    #GM12878 and KBM7:dfchr["chr"]
+    #HMEC and NHEK: chromosomes_ HMEC_NHEK[:0]
+
+    #start:
+    #GM12878 and KBM7:dfchr["start"]
+    #HMEC and NHEK: chromosomes_ HMEC_NHEK[:1]
+
+    #end:
+    #GM12878 and KBM7:dfchr["end"]
+    #HMEC and NHEK: chromosomes_ HMEC_NHEK[:2]
+
+    ind=clean_indexing(data0)
+
+    ind_chr=[]
+
+    #create a dictionary with the indexes of the chromosomes
+    for i in range(len(chrom)):
+        ind_chr.append(list(range(start[i],end[i]+start[0])))
+
+    chro = dict(zip(chrom, ind_chr)) 
+
+    #remove the indexes of the Y chromosome and the isolated nodes
+    a=0
+    for key, value in chro.items():
+        up_ind = [x + 1 for x in ind]
+        new_values=[item for item in value if item not in up_ind]
+        #substitute old values with new ones starting from zero and increasin
+        if len(new_values)!=0:
+            new_values=list(range(a,a+len(new_values)))
+            a+=len(new_values)  
+            chro[key]=new_values
+        else:
+            chro[key]=[]
+
+    return chro
 ############################################################################################
 #strength of nodes ---> degree centrality
 
@@ -137,3 +175,32 @@ def cluster_view (community_list,cell):
     plt.show()
     
     return matrix
+
+############################################################################################
+#clusters scatter plot
+
+def cluster_scatter(part,chro,chrom,cell ):
+
+    #chrom:
+    #GM12878 and KBM7:dfchr["chr"]
+    #HMEC and NHEK: chromosomes_ HMEC_NHEK[:,0]
+
+    cmap = plt.get_cmap('nipy_spectral')
+    colors = [cmap(i) for i in np.linspace(0, 1, 23)]
+    
+    n=0
+    for j in range(len(part)):
+        cl=part[j]
+        for i, color in enumerate(colors, start=0):
+            r=chro[chrom[i]]
+            cl_chr= [val for val in r if val in cl]
+            n=(np.array(range(len(cl_chr)))/len(cl_chr))+j
+            plt.scatter(n,cl_chr, s=3 ,label=f"chr {i+1}", color=color)
+        plt.axvline(x=j, color="black", lw=0.1)
+        plt.ylabel("indexes")
+        plt.xlabel("clusters")
+        plt.title(f"{cell} {j+1} clusters distribution")
+    plt.show()
+
+    return
+
