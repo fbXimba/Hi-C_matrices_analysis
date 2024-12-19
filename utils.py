@@ -146,7 +146,7 @@ def compute_essential_matrix(eigval, eigvec, N, cell):
         A_ess += k_n * np.outer(a_n, a_n)  
     
     #creating corresponding plot
-    plot_adjacency_matrix(A_ess, cell, N)
+    plot_adjacency_matrix(A_ess, cell, N, "plasma")
 
     return 
 
