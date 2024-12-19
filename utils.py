@@ -81,10 +81,10 @@ def clean_indexing(matrix):
 #adajacency matrix
 
 #function to plot the adjacency matrix
-def plot_adjacency_matrix(data, cell, N):
-    plt.imshow(data, cmap='plasma', interpolation='none') #plasma or gist_heat
+def plot_adjacency_matrix(data, cell, N, color):
+    plt.imshow(data, cmap= color, interpolation='none') #plasma or gist_heat
     plt.colorbar()
-    plt.title(f'Adjacency Matrix {cell}: with {N} values')
+    plt.title(f'Adjacency Matrix {cell}: with {N}')
     plt.show()
     return
 
@@ -116,6 +116,24 @@ def compute_essential_matrix(eigval, eigvec, N, cell):
 #thresholding with mask
 
 def thresholding(data, t):
-    mask=np.where(data>t,1,0)
+    thr=np.where(data>t,1,0)
     
-    return mask
+    return thr
+
+############################################################################################
+#cluster view
+
+def cluster_view (community_list,cell):
+    matrix = np.zeros((2888,2888))
+    
+    for cluster in community_list:
+            for i in cluster:
+                for j in cluster:
+                    matrix[i,j] = len(community_list) - community_list.index(cluster) + 1
+     
+    plt.imshow(matrix, cmap='nipy_spectral', interpolation='none') 
+    plt.colorbar()
+    plt.title(f"Community Visualization Matrix {cell} with {len(community_list)} clusters")
+    plt.show()
+    
+    return matrix
