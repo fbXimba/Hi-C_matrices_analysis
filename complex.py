@@ -13,8 +13,8 @@ import time as tm
 #from multiprocessing import Pool
 #from tqdm import tqdm 
 from numpy import linalg as LA
-import utils
-import construction_site as cs
+import local_utils as utils
+import local_construction_site as cs
 import leidenalg
 import igraph as ig
 
@@ -478,10 +478,10 @@ for i in l_ranges:
 t10=tm.time()
 
 #Adjacency matrix visualization
-utils.plot_adjacency_matrix(dataGM_normalized, "GM12878", "all")
-utils.plot_adjacency_matrix(dataKBM_normalized, "KBM7", "all")
-utils.plot_adjacency_matrix(dataHMEC_normalized, "HMEC", "all")
-utils.plot_adjacency_matrix(dataNHEK_normalized, "NHEK", "all")
+utils.plot_adjacency_matrix(dataGM_normalized, "GM12878", "all", 'plasma')
+utils.plot_adjacency_matrix(dataKBM_normalized, "KBM7", "all", 'plasma')
+utils.plot_adjacency_matrix(dataHMEC_normalized, "HMEC", "all", 'plasma')
+utils.plot_adjacency_matrix(dataNHEK_normalized, "NHEK", "all", 'plasma')
 
 #%%
 #Computing essential matrix for a different number of eigenvectors and eigenvalues
@@ -518,19 +518,19 @@ utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 37
 
 #GM12878
 dataGM_bin=utils.thresholding(dataGM_normalized, 4.7)
-#utils.plot_adjacency_matrix(dataGM_bin, "GM12878", "threshold 4.7")
+utils.plot_adjacency_matrix(dataGM_bin, "GM12878", "threshold 4.7", 'plasma')
 
 #KBM7
 dataKBM_bin=utils.thresholding(dataKBM_normalized, 4.7)
-#utils.plot_adjacency_matrix(dataKBM_bin, "KBM7", "threshold 4.7")
+utils.plot_adjacency_matrix(dataKBM_bin, "KBM7", "threshold 4.7", 'plasma')
 
 #HMEC
 dataHMEC_bin=utils.thresholding(dataHMEC_normalized, 4.1)
-#utils.plot_adjacency_matrix(dataHMEC_bin, "HMEC", "threshold 4.1")
+utils.plot_adjacency_matrix(dataHMEC_bin, "HMEC", "threshold 4.1", 'plasma')
 
 #NHEK
 dataNHEK_bin=utils.thresholding(dataNHEK_normalized, 4.3)
-#utils.plot_adjacency_matrix(dataNHEK_bin, "NHEK", "threshold 4.3")
+utils.plot_adjacency_matrix(dataNHEK_bin, "NHEK", "threshold 4.3", 'plasma')
 
 # %%
 #binary graphs and clustering
@@ -542,11 +542,50 @@ Gbin_HMEC= ig.Graph.Adjacency(dataHMEC_bin, mode="undirected")
 Gbin_NHEK= ig.Graph.Adjacency(dataNHEK_bin, mode="undirected")
 
 #clustering with Leiden algorithm
-part_GM = leidenalg.find_partition(Gbin_GM, leidenalg.ModularityVertexPartition)
-part_KBM = leidenalg.find_partition(Gbin_KBM7, leidenalg.ModularityVertexPartition)
-part_HMEC = leidenalg.find_partition(Gbin_HMEC, leidenalg.ModularityVertexPartition)
-part_NHEK = leidenalg.find_partition(Gbin_NHEK, leidenalg.ModularityVertexPartition)
 
+#GM12878
+part_GM = leidenalg.find_partition(Gbin_GM, leidenalg.ModularityVertexPartition)
+mod_GM = part_GM.modularity
+
+#KBM7
+part_KBM = leidenalg.find_partition(Gbin_KBM7, leidenalg.ModularityVertexPartition)
+mod_KBM = part_KBM.modularity
+
+#HMEC
+part_HMEC = leidenalg.find_partition(Gbin_HMEC, leidenalg.ModularityVertexPartition)
+mod_HMEC = part_HMEC.modularity
+
+#NHEK
+part_NHEK = leidenalg.find_partition(Gbin_NHEK, leidenalg.ModularityVertexPartition)
+mod_NHEK = part_NHEK.modularity
+
+print(mod_GM, mod_KBM, mod_HMEC, mod_NHEK)
 #%%
-ig.plot(part_GM)
-# %%
+#Visualization of community adjacency matrix
+
+community_GM = list(part_GM)
+community_KBM = list(part_KBM)
+community_HMEC = list(part_HMEC)
+community_NHEK = list(part_NHEK)
+
+#GM12878
+A = utils.cluster_view(community_GM,"GM12878")
+#possibility to confront the cluster matrix with the original adjacency matri
+utils.plot_adjacency_matrix(dataGM_normalized, "GM12878", "all", 'plasma')
+
+#KBM7
+B = utils.cluster_view(community_KBM, "KBM7")
+#utils.plot_adjacency_matrix(dataKBM_normalized, "KBM7", "all", 'plasma')
+
+#HMEC
+utils.cluster_view(community_HMEC, "HMEC")
+#utils.plot_adjacency_matrix(dataHMEC_normalized, "HMEC", "all", 'plasma')
+
+#NHEK
+utils.cluster_view(community_NHEK, "NHEK")
+#utils.plot_adjacency_matrix(dataNHEK_normalized, "NHEK", "all", 'plasma')
+
+#Visualization of differences between clustering matrices of GM12878 and KBM7
+diff_M = np.subtract(B, A)
+
+utils.plot_adjacency_matrix(diff_M, "KBM7 - GM12878", "all", 'gnuplot2')
