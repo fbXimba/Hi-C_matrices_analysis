@@ -1,8 +1,7 @@
 #libraries
+import os
 import networkx as nx
 import numpy as np
-import tqdm
-from multiprocessing import Pool
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
@@ -60,6 +59,20 @@ def dict_indexing(data0,chrom,start,end):
             chro[key]=[]
 
     return chro
+
+############################################################################################
+#save plots
+
+dir_home=os.getcwd()
+
+def save_plot(plot,dir,title):
+    os.chdir(dir)
+    plot.savefig(f'{title}.png')
+    plot.show()
+    plot.close()
+    os.chdir(dir_home)
+    return
+
 ############################################################################################
 #strength of nodes ---> degree centrality
 
@@ -71,36 +84,46 @@ def stregth(G):
     return str
 
 ############################################################################################
-#clustering coefficient: local(single node) and average
-
-#function to compute local clustering for a single node
-def local_clustering(node,G):
-    result = nx.clustering(G, nodes=node, weight='weight')
-    return result
-
-
-def parallel_clustering(G):
-
-    #list of nodes
-    nodes = list(G.nodes)
-
-    if __name__ == "__main__":
-
-        #use a pool to compute local clustering in parallel
-        with Pool(processes=4) as pool:
-
-            with tqdm(total=len(nodes)) as pbar:
-                    clustering_results = []
-                    for result in pool.imap_unordered(local_clustering, nodes,G):
-                        clustering_results.append(result)
-                        pbar.update(1)
-
-        #compute the average clustering coefficient
-        avg_clustering_parallel = sum(clustering_results) / len(clustering_results)
-        print(avg_clustering_parallel)
-
-    return clustering_results,avg_clustering_parallel
-
+##clustering coefficient: local(single node) and average
+#
+##function to compute local clustering for a single node
+#def local_clustering(node,G):
+#    result = nx.clustering(G, nodes=node, weight='weight')
+#    return result
+#
+#
+#def parallel_clustering(G):
+#    #libraries needed: from multiprocessing import Pool, from tqdm import tqdm, from functools import partial
+#
+#    #list of nodes
+#    nodes = list(G.nodes)
+#
+#    clustering_func = partial(local_clustering, G=G)
+#
+#    #if __name__ == "__main__":
+#    #to avoid error: needs to be defined in the main module
+#    #ex: if __name__ == "__main__":
+#    #        clustering_results,avg_clustering_parallel=parallel_clustering(G)
+#
+#    #use a pool to compute local clustering in parallel
+#    with Pool(processes=3) as pool:
+#        clustering_results = []
+#        with tqdm(total=len(nodes)) as pbar:
+#                async_results = []
+#                for node in nodes:
+#                    # Use apply_async for non-blocking calls
+#                    async_results.append(pool.apply_async(clustering_func, args=(node,), callback=lambda _: pbar.update(1)))
+#                    # Collect the results as they complete
+#                for res in async_results:
+#                    clustering_results.append(res.get())  # Get result from each async call
+#        pool.close()
+#        pool.join()
+#
+#    #compute the average clustering coefficient
+#    avg_clustering_parallel = sum(clustering_results) / len(clustering_results)
+#    print(avg_clustering_parallel)
+#
+#    return clustering_results,avg_clustering_parallel
 
 ############################################################################################
 #cleaning indexes to match the cleaned data
@@ -119,16 +142,17 @@ def clean_indexing(matrix):
 #adajacency matrix
 
 #function to plot the adjacency matrix
-def plot_adjacency_matrix(data, cell, N, color):
+def plot_adjacency_matrix(data, cell, N, color,dir):
     plt.imshow(data, cmap= color, interpolation='none') #plasma or gist_heat
     plt.colorbar()
-    plt.title(f'Adjacency Matrix {cell}: with {N}')
-    plt.show()
+    title=f'Adjacency Matrix {cell}: with {N}'
+    plt.title(title)
+    save_plot(plt,dir, title)
     return
 
 
 #function to compute the adjacency matrix using the top N eigenvalues and eigenvectors
-def compute_essential_matrix(eigval, eigvec, N, cell):
+def compute_essential_matrix(eigval, eigvec, N, cell,dir):
     #ordering in an absolute descending order 
     idx = np.argsort(np.abs(eigval))[::-1]
     # selecting top N eigenvalues and eigenvectors
@@ -146,7 +170,7 @@ def compute_essential_matrix(eigval, eigvec, N, cell):
         A_ess += k_n * np.outer(a_n, a_n)  
     
     #creating corresponding plot
-    plot_adjacency_matrix(A_ess, cell, N, "plasma")
+    plot_adjacency_matrix(A_ess, cell, N, "plasma",dir)
 
     return 
 
@@ -161,7 +185,7 @@ def thresholding(data, t):
 ############################################################################################
 #cluster view
 
-def cluster_view (community_list,cell):
+def cluster_view (community_list,cell,dir):
     matrix = np.zeros((2888,2888))
     
     for cluster in community_list:
@@ -171,7 +195,9 @@ def cluster_view (community_list,cell):
      
     plt.imshow(matrix, cmap='nipy_spectral', interpolation='none') 
     plt.colorbar()
-    plt.title(f"Community Visualization Matrix {cell} with {len(community_list)} clusters")
+    title=f'Community Visualization Matrix {cell} with {len(community_list)} clusters'
+    plt.title(title)
+    save_plot(plt,dir, title)
     plt.show()
     
     return matrix
@@ -179,7 +205,7 @@ def cluster_view (community_list,cell):
 ############################################################################################
 #clusters scatter plot
 
-def cluster_scatter(part,chro,chrom,cell ):
+def cluster_scatter(part,chro,chrom,cell,dir):
 
     #chrom:
     #GM12878 and KBM7:dfchr["chr"]
@@ -199,8 +225,8 @@ def cluster_scatter(part,chro,chrom,cell ):
         plt.axvline(x=j, color="black", lw=0.1)
         plt.ylabel("indexes")
         plt.xlabel("clusters")
-        plt.title(f"{cell} {j+1} clusters distribution")
-    plt.show()
+        title=f"{cell} {j+1} clusters distribution"
+        plt.title(title)
+    save_plot(plt,dir, title)
 
     return
-
