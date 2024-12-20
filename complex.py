@@ -10,8 +10,8 @@ import matplotlib.gridspec as gridspec
 #import random as rnd
 import networkx as nx
 import time as tm
-#from multiprocessing import Pool
-#from tqdm import tqdm 
+from multiprocessing import Pool
+from tqdm import tqdm 
 from numpy import linalg as LA
 import utils as utils
 import construction_site as cs
@@ -29,6 +29,13 @@ dir_home=os.getcwd()
 dir_data=dir_home+"/Data/"
 dir_HMEC=dir_data+"raw_HMEC_1Mb/"
 dir_NHEK=dir_data+"raw_NHEK_1Mb/"
+dir_plots=dir_home+"/Plots/"
+
+if os.path.exists(dir_plots):
+    print("plots directory already exists")
+else:
+    os.mkdir(dir_plots)
+    print("plots directory created")
 
 #read data GM12878 and KBM7 and create matrices
 #GM12878 healthy cells
@@ -130,36 +137,71 @@ t4=tm.time()
 #GM12878
 plt.hist(str_GM, bins=400)
 plt.xlabel("log_10(strength)")
-plt.title("strength histogram GM normalized")
-plt.show()
+title="strength histogram GM normalized"
+plt.title(title)
+utils.save_plot(plt,dir_plots, title)
 
 #KBM7
 plt.hist(str_KBM, bins=400)
 plt.xlabel("log_10(strength)")
-plt.title("strength histogram KBM normalized")
-plt.show()
+title="strength histogram KBM normalized"
+plt.title(title)
+utils.save_plot(plt,dir_plots, title)
 
 #HMEC
 plt.hist(str_HMEC, bins=400)
 plt.xlabel("log_10(strength)")
-plt.title("strength histogram HMEC normalized")
-plt.show()
+title="strength histogram HMEC normalized"
+plt.title(title)
+utils.save_plot(plt,dir_plots, title)
 
 #NHEK
 plt.hist(str_NHEK, bins=400)
 plt.xlabel("log_10(strength)")
-plt.title("strength histogram NHEK normalized")
-plt.show()
+title="strength histogram NHEK normalized"
+plt.title(title)
+utils.save_plot(plt,dir_plots, title)
 
 #%%
 #Average clustering coefficient
+#needs to be changed manually: flagged with #variable
+#implementation in a function in utils file implied too heavy RAM usage for the current machine
+#there is a commented option in utils, not sure wheather it works or not
 
 #GM12878
 t5=tm.time()
 
-clustering_results_GM,avg_clustering_parallel_GM=utils.parallel_clustering(G_GM)
+#function to compute local clustering for a single node
+def local_clustering(node):
+    #variable
+    G=G_GM
+    result = nx.clustering(G, nodes=node, weight='weight')
+    return result
+
+#list of nodes
+#variable
+nodes = list(G_GM.nodes)
+
+if __name__ == "__main__":
+
+    #use a pool to compute local clustering in parallel
+    with Pool(processes=4) as pool:
+
+        with tqdm(total=len(nodes)) as pbar:
+                clustering_results_GM = []
+
+                for result in pool.imap_unordered(local_clustering, nodes):
+                    #variable
+                    clustering_results_GM.append(result)
+                    pbar.update(1)
+
+    #compute the average clustering coefficient
+    #variable x 4
+    avg_clustering_parallel_GM = sum(clustering_results_GM) / len(clustering_results_GM)
+    print(avg_clustering_parallel_GM)
 
 # Save the results to a text file
+#variable x 3
 file_clustering = open("clustering_resultsGM.txt", "w")
 with open("clustering_resultsGM.txt", "w") as file:
     for value in clustering_results_GM:
@@ -167,71 +209,17 @@ with open("clustering_resultsGM.txt", "w") as file:
 file_clustering.close()
 
 # Save as a NumPy binary file
+#variable x 2
 np.save("clustering_resultsGM.npy", clustering_results_GM)
 
 #%%
-#KBM7
-t5p=tm.time()
-
-clustering_results_KBM,avg_clustering_parallel_KBM=utils.parallel_clustering(G_KBM)
-
-file_clustering = open("clustering_resultsKBM.txt", "w")
-with open("clustering_resultsKBM.txt", "w") as file:
-    for value in clustering_results_KBM:
-        file_clustering.write(f"{value}\n")  # Each float on a new line
-file_clustering.close()
-
-np.save("clustering_resultsKBM.npy", clustering_results_KBM)
-
-# %%
-#HMEC
-t5s=tm.time()
-
-clustering_results_HMEC,avg_clustering_parallel_HMEC=utils.parallel_clustering(G_HMEC)
-
-file_clustering = open("clustering_resultsHMEC.txt", "w")
-with open("clustering_resultsHMEC.txt", "w") as file:
-    for value in clustering_results_HMEC:
-        file_clustering.write(f"{value}\n")  # Each float on a new line
-file_clustering.close()
-
-np.save("clustering_resultsHMEC.npy", clustering_results_HMEC)
-
-#%%
-#NHEK
-t5t=tm.time()
-
-clustering_results_NHEK,avg_clustering_parallel_NHEK=utils.parallel_clustering(G_NHEK)
-
-file_clustering = open("clustering_resultsNHEK.txt", "w")
-with open("clustering_resultsNHEK.txt", "w") as file:
-    for value in clustering_results_NHEK:
-        file_clustering.write(f"{value}\n")  # Each float on a new line
-file_clustering.close()
-
-np.save("clustering_resultsNHEK.npy", clustering_results_NHEK)
-
-#%%
-
-# Load the results from the text file
-
-#with open("clustering_resultsGM.txt", "r") as file:
-#    clustering_resultsGM= [float(line.strip()) for line in file]
-#    #print(clustering_resultsGM)
-#file.close()
-
-#with open("clustering_resultsKBM.txt", "r") as file:
-#    clustering_resultsKBM= [float(line.strip()) for line in file]
-#    #print(clustering_resultsKBM)
-#file.close()
-
-#%%
-
-# Load the NumPy binary file
+#Load the NumPy binary file
+#GM12878 and KBM7
 clustering_results_GM= np.load("clustering_resultsGM.npy")
 clustering_results_KBM= np.load("clustering_resultsKBM.npy")
 
 #%%
+#HMCE and NHEK
 #NOTE: NON ANCORA OTTENUTI
 clustering_results_HMEC= np.load("clustering_resultsHMEC.npy")
 clustering_results_NHEK= np.load("clustering_resultsNHEK.npy")
@@ -246,13 +234,15 @@ cl_coeff_GM_n0=cl_coeff_GM[cl_coeff_GM>0]
 
 plt.hist(cl_coeff_GM_n0, bins=300)
 plt.xlabel("clustering coefficient")
-plt.title("histogram clustering coefficient GM normalized")
-plt.show()
+title="histogram clustering coefficient GM normalized"
+plt.title(title)
+utils.save_plot(plt,dir_plots, title)
 
 plt.hist(np.log10(cl_coeff_GM_n0), bins=300)
 plt.xlabel("log_10(clustering coefficient)")
-plt.title("histogram log clustering coefficient GM normalized")
-plt.show()
+title="histogram log clustering coefficient GM normalized"
+plt.title(title)
+utils.save_plot(plt,dir_plots, title)
 
 #%%
 #Spectral analysis of matrices
@@ -297,32 +287,36 @@ eigvals_GM = np.delete(eigenvalues_GM_norm, 0)
 
 plt.hist(eigvals_GM[eigvals_GM<500], bins=100)
 plt.xlabel("eigenvalues_GM")
-plt.title("histogram eigenvalues GM")
-plt.show()
+title="histogram eigenvalues GM"
+plt.title(title)
+utils.save_plot(plt,dir_plots, title)
 
 #KBM7
 eigvals_KBM = np.delete(eigenvalues_KBM_norm, 0)
 
 plt.hist(eigvals_KBM[eigvals_KBM<500], bins=100)
 plt.xlabel("eigenvalues_KBM")
-plt.title("histogram eigenvalues KBM")
-plt.show()
+title="histogram eigenvalues KBM"
+plt.title(title)
+utils.save_plot(plt,dir_plots, title)
 
 #HMEC
 eigvals_HMEC = np.delete(eigenvalues_HMEC_norm, 0)
 
 plt.hist(eigvals_HMEC[eigvals_HMEC<500], bins=100)
 plt.xlabel("eigenvalues_HMEC")
-plt.title("histogram eigenvalues HMEC")
-plt.show()
+title="histogram eigenvalues HMEC"
+plt.title(title)
+utils.save_plot(plt,dir_plots, title)
 
 #NHEK
 eigvals_NHEK = np.delete(eigenvalues_NHEK_norm, 0)
 
 plt.hist(eigvals_NHEK[eigvals_NHEK<500], bins=100)
 plt.xlabel("eigenvalues_NHEK")
-plt.title("histogram eigenvalues NHEK")
-plt.show()
+title="histogram eigenvalues NHEK"
+plt.title(title)
+utils.save_plot(plt,dir_plots, title)
 
 #%%
 #Spectral density comparison
@@ -333,8 +327,9 @@ plt.hist(eigvals_KBM[eigvals_KBM<100], bins=150, density = True, histtype= 'step
 plt.legend(loc="best")
 plt.xlabel("eigenvalues")
 plt.ylabel("Density")
-plt.title("Spectral density comparison")
-plt.show()
+title="Spectral density comparison GM12878 and KBM7"
+plt.title(title)
+utils.save_plot(plt,dir_plots, title)
 
 
 plt.hist(eigvals_GM[eigvals_GM<100], bins=150, density = True, histtype= 'step', color="r", label='GM12878')
@@ -344,8 +339,9 @@ plt.hist(eigvals_NHEK[eigvals_NHEK<100], bins=150, density = True, histtype= 'st
 plt.legend(loc="best")
 plt.xlabel("eigenvalues")
 plt.ylabel("Density")
-plt.title("Spectral density comparison")
-plt.show()
+title="Spectral density comparison"
+plt.title(title)
+utils.save_plot(plt,dir_plots, title)
 
 #%%
 #Eigenvectors component distribution
@@ -356,8 +352,9 @@ for eigenvectors in [[eigenvectors_GM_norm,"GM12878"], [eigenvectors_KBM_norm,"K
     for n in [0,1,19,99]:
         #eigenvectors 1, 2, 20 and 100
         plt.hist(eigenvectors[0][n], bins=80)
-        plt.title(f"{eigenvectors[1]} eigenvector {n+1} distribution")
-        plt.show()
+        title=f"{eigenvectors[1]} eigenvector {n+1} distribution"
+        plt.title(title)
+        utils.save_plot(plt,dir_plots, title)    
 
 #%%
 #modify indexing to locate chromosomes for eigenvectors analysis
@@ -391,8 +388,9 @@ for eigenvectors in [[eigenvectors_GM_norm,"GM12878"], [eigenvectors_KBM_norm,"K
             plt.plot(r ,vals, color=color)  #all chromosomes starts at 0
             plt.fill_between(x=r ,y1=vals, color=color)
             plt.xlabel("eigenvector component")
-            plt.title(f"{eigenvectors[1]} eigenvector {n+1} components")
-        plt.show()
+            title=f"{eigenvectors[1]} eigenvector {n+1} components"
+            plt.title(title)
+        utils.save_plot(plt,dir_plots, title)   
 
 #%%
 #IPR
@@ -420,9 +418,10 @@ plt.scatter(list(range(1,26)),IPR_KBM[:25], s=5, color="b", label="KBM7")
 plt.plot(list(range(1,26)),IPR_KBM[:25],lw=0.1, color="b")
 plt.xlabel("eigenvectors")
 plt.ylabel("IPR")
-plt.title("IPR comparison GM12878 and KBM7 - first 25 eigenvectors")
+title="IPR comparison GM12878 and KBM7 - first 25 eigenvectors"
 plt.legend(loc="best")
-plt.show()
+plt.title(title)
+utils.save_plot(plt,dir_plots, title)
 
 #IPR values of the first 25 eigenvectors of GM12878, KBM7, HMEC and NHEK
 plt.scatter(list(range(1,26)),IPR_GM[:25], s=5, color="r", label="GM12878")
@@ -435,9 +434,10 @@ plt.scatter(list(range(1,26)),IPR_NHEK[:25], s=5, color="y", label="NHEK")
 plt.plot(list(range(1,26)),IPR_NHEK[:25],lw=0.1, color="y")
 plt.xlabel("eigenvectors")
 plt.ylabel("IPR")
-plt.title("IPR comparison GM12878, KBM7, HMEC and NHEK - first 25 eigenvectors")
+title="IPR comparison GM12878, KBM7, HMEC and NHEK - first 25 eigenvectors"
 plt.legend(loc="best")
-plt.show()
+plt.title(title)
+utils.save_plot(plt,dir_plots, title)
     
 #IPR values of all eigenvectors and cuts in 3 ranges for better visualization
 l_ranges=[[0,2888, "all"],[0,199, "1-200"],[899,1249, "900-1250"],[2749,2888, "2750-2890"]]
@@ -448,68 +448,69 @@ for i in l_ranges:
     plt.semilogy(list(range(i[0]+1,i[1]+1)), IPR_NHEK[i[0]:i[1]],lw=0.6, ls='-', color="y", label="NHEK")
     plt.xlabel("eigenvectors")
     plt.ylabel("log10(IPR)")
-    plt.title(f"IPR comparison GM12878 and KBM7 - {i[2]} eigenvectors")
+    title=f"IPR comparison GM12878 and KBM7 - {i[2]} eigenvectors"
     plt.legend(loc="best")
-    plt.show()
+    plt.title(title)
+    utils.save_plot(plt,dir_plots, title)
 
 #%%
 #Adjacency matrix
 t10=tm.time()
 
 #Adjacency matrix visualization
-utils.plot_adjacency_matrix(dataGM_normalized, "GM12878", "all", 'plasma')
-utils.plot_adjacency_matrix(dataKBM_normalized, "KBM7", "all", 'plasma')
-utils.plot_adjacency_matrix(dataHMEC_normalized, "HMEC", "all", 'plasma')
-utils.plot_adjacency_matrix(dataNHEK_normalized, "NHEK", "all", 'plasma')
+utils.plot_adjacency_matrix(dataGM_normalized, "GM12878", "all", 'plasma',dir_plots)
+utils.plot_adjacency_matrix(dataKBM_normalized, "KBM7", "all", 'plasma',dir_plots)
+utils.plot_adjacency_matrix(dataHMEC_normalized, "HMEC", "all", 'plasma',dir_plots)
+utils.plot_adjacency_matrix(dataNHEK_normalized, "NHEK", "all", 'plasma',dir_plots)
 
 #%%
 #Computing essential matrix for a different number of eigenvectors and eigenvalues
 
 #GM12878
-utils.compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 10, "GM12878")
-utils.compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 15, "GM12878")
-utils.compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 20, "GM12878")
-utils.compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 25, "GM12878")
+utils.compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 10, "GM12878",dir_plots)
+utils.compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 15, "GM12878",dir_plots)
+utils.compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 20, "GM12878",dir_plots)
+utils.compute_essential_matrix(eigenvalues_GM_norm, eigenvectors_GM_norm, 25, "GM12878",dir_plots)
 
 #KBM7
-utils.compute_essential_matrix(eigenvalues_KBM_norm, eigenvectors_KBM_norm, 10, "KBM7")
-utils.compute_essential_matrix(eigenvalues_KBM_norm, eigenvectors_KBM_norm, 15, "KBM7")
-utils.compute_essential_matrix(eigenvalues_KBM_norm, eigenvectors_KBM_norm, 20, "KBM7")
-utils.compute_essential_matrix(eigenvalues_KBM_norm, eigenvectors_KBM_norm, 25, "KBM7")
-utils.compute_essential_matrix(eigenvalues_KBM_norm, eigenvectors_KBM_norm, 30, "KBM7")
+utils.compute_essential_matrix(eigenvalues_KBM_norm, eigenvectors_KBM_norm, 10, "KBM7",dir_plots)
+utils.compute_essential_matrix(eigenvalues_KBM_norm, eigenvectors_KBM_norm, 15, "KBM7",dir_plots)
+utils.compute_essential_matrix(eigenvalues_KBM_norm, eigenvectors_KBM_norm, 20, "KBM7",dir_plots)
+utils.compute_essential_matrix(eigenvalues_KBM_norm, eigenvectors_KBM_norm, 25, "KBM7",dir_plots)
+utils.compute_essential_matrix(eigenvalues_KBM_norm, eigenvectors_KBM_norm, 30, "KBM7",dir_plots)
 
 #HMEC
-utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 10, "HMEC")
-utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 15, "HMEC")
-utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 20, "HMEC")
-utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 25, "HMEC")
-utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 35, "HMEC")
+utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 10, "HMEC",dir_plots)
+utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 15, "HMEC",dir_plots)
+utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 20, "HMEC",dir_plots)
+utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 25, "HMEC",dir_plots)
+utils.compute_essential_matrix(eigenvalues_HMEC_norm, eigenvectors_HMEC_norm, 35, "HMEC",dir_plots)
 
 #NHEK
-utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 10, "NHEK")
-utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 15, "NHEK")
-utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 20, "NHEK")
-utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 25, "NHEK")
-utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 37, "NHEK")
+utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 10, "NHEK", dir_plots)
+utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 15, "NHEK", dir_plots)
+utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 20, "NHEK", dir_plots)
+utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 25, "NHEK", dir_plots)
+utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 37, "NHEK", dir_plots)
 
 # %%
 #Thresholding for binary matrix
 
 #GM12878
 dataGM_bin=utils.thresholding(dataGM_normalized, 4.7)
-utils.plot_adjacency_matrix(dataGM_bin, "GM12878", "threshold 4.7", 'plasma')
+utils.plot_adjacency_matrix(dataGM_bin, "GM12878", "threshold 4.7", 'plasma',dir_plots)
 
 #KBM7
 dataKBM_bin=utils.thresholding(dataKBM_normalized, 4.7)
-utils.plot_adjacency_matrix(dataKBM_bin, "KBM7", "threshold 4.7", 'plasma')
+utils.plot_adjacency_matrix(dataKBM_bin, "KBM7", "threshold 4.7", 'plasma',dir_plots)
 
 #HMEC
 dataHMEC_bin=utils.thresholding(dataHMEC_normalized, 4.1)
-utils.plot_adjacency_matrix(dataHMEC_bin, "HMEC", "threshold 4.1", 'plasma')
+utils.plot_adjacency_matrix(dataHMEC_bin, "HMEC", "threshold 4.1", 'plasma',dir_plots)
 
 #NHEK
 dataNHEK_bin=utils.thresholding(dataNHEK_normalized, 4.3)
-utils.plot_adjacency_matrix(dataNHEK_bin, "NHEK", "threshold 4.3", 'plasma')
+utils.plot_adjacency_matrix(dataNHEK_bin, "NHEK", "threshold 4.3", 'plasma',dir_plots)
 
 # %%
 #binary graphs and clustering
@@ -548,33 +549,34 @@ community_HMEC = list(part_HMEC)
 community_NHEK = list(part_NHEK)
 
 #GM12878
-A = utils.cluster_view(community_GM,"GM12878")
+A = utils.cluster_view(community_GM,"GM12878",dir_plots)
 #possibility to confront the cluster matrix with the original adjacency matri
-utils.plot_adjacency_matrix(dataGM_normalized, "GM12878", "all", 'plasma')
+utils.plot_adjacency_matrix(dataGM_normalized, "GM12878", "all", 'plasma',dir_plots)
 
 #KBM7
-B = utils.cluster_view(community_KBM, "KBM7")
-#utils.plot_adjacency_matrix(dataKBM_normalized, "KBM7", "all", 'plasma')
+B = utils.cluster_view(community_KBM, "KBM7",dir_plots)
+#utils.plot_adjacency_matrix(dataKBM_normalized, "KBM7", "all", 'plasma',dir_plots)
 
 #HMEC
-utils.cluster_view(community_HMEC, "HMEC")
-#utils.plot_adjacency_matrix(dataHMEC_normalized, "HMEC", "all", 'plasma')
+utils.cluster_view(community_HMEC, "HMEC",dir_plots)
+#utils.plot_adjacency_matrix(dataHMEC_normalized, "HMEC", "all", 'plasma',dir_plots)
 
 #NHEK
-utils.cluster_view(community_NHEK, "NHEK")
-#utils.plot_adjacency_matrix(dataNHEK_normalized, "NHEK", "all", 'plasma')
+utils.cluster_view(community_NHEK, "NHEK",dir_plots)
+#utils.plot_adjacency_matrix(dataNHEK_normalized, "NHEK", "all", 'plasma',dir_plots)
 
 #Visualization of differences between clustering matrices of GM12878 and KBM7
 diff_M = np.subtract(B, A)
 
-utils.plot_adjacency_matrix(diff_M, "KBM7 - GM12878", "all", 'gnuplot2')
+utils.plot_adjacency_matrix(diff_M, "KBM7 - GM12878", "all", 'gnuplot2',dir_plots)
 
 #%%
 #scatter plot of clusters 
 #clusters visually divided and different colors for each chromosome
 #necesseary to create chromosomes dictionary cho1 and chro2: cell at line 362
 
-utils.cluster_scatter(part_GM, chro1, dfchr["chr"], "GM12878")
-utils.cluster_scatter(part_KBM, chro1, dfchr["chr"], "KBM7")
-utils.cluster_scatter(part_HMEC, chro2, chromosomes_HMEC_NHEK[:,0], "HMEC")
-utils.cluster_scatter(part_NHEK, chro2, chromosomes_HMEC_NHEK[:,0], "NHEK")
+utils.cluster_scatter(part_GM, chro1, dfchr["chr"], "GM12878",dir_plots)
+utils.cluster_scatter(part_KBM, chro1, dfchr["chr"], "KBM7",dir_plots)
+utils.cluster_scatter(part_HMEC, chro2, chromosomes_HMEC_NHEK[:,0], "HMEC",dir_plots)
+utils.cluster_scatter(part_NHEK, chro2, chromosomes_HMEC_NHEK[:,0], "NHEK",dir_plots)
+# %%
