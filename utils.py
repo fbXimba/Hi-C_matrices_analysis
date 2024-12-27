@@ -145,7 +145,7 @@ def clean_indexing(matrix):
 def plot_adjacency_matrix(data, cell, N, color,dir):
     plt.imshow(data, cmap= color, interpolation='none') #plasma or gist_heat
     plt.colorbar()
-    title=f'Adjacency Matrix {cell}: with {N}'
+    title=f'Adjacency Matrix {cell} with {N}'
     plt.title(title)
     save_plot(plt,dir, title)
     return
