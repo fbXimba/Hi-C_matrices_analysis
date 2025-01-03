@@ -185,51 +185,47 @@ utils.save_plot(plt,dir_centrality, title)
 #needs to be changed manually: flagged with #variable
 #implementation in a function in utils file implied too heavy RAM usage for the current machine
 #there is a commented option in utils, not sure wheather it works or not
-#print(single node and average clustering coefficient commented: ad hoc)
+print("single node and average clustering coefficient commented: ad hoc")
 #GM12878
-# t5=tm.time()
+#t5=tm.time()
 
-# #function to compute local clustering for a single node
-# def local_clustering(node):
-#     #variable
-#     G=G_GM
-#     result = nx.clustering(G, nodes=node, weight='weight')
-#     return result
+#function to compute local clustering for a single node
+def local_clustering(node):
+     #variable
+     G=G_GM
+     result = nx.clustering(G, nodes=node, weight='weight')
+     return result
 
-# #list of nodes
-# #variable
-# nodes = list(G_GM.nodes)
+#list of nodes
+#variable
+nodes = list(G_GM.nodes)
 
-# if __name__ == "__main__":
+if __name__ == "__main__":
+    #use a pool to compute local clustering in parallel
+    with Pool(processes=4) as pool:
+        with tqdm(total=len(nodes)) as pbar:
+                clustering_results_GM = []
+                for result in pool.imap_unordered(local_clustering, nodes):
+                    #variable
+                    clustering_results_GM.append(result)
+                    pbar.update(1)
 
-#     #use a pool to compute local clustering in parallel
-#     with Pool(processes=4) as pool:
+    #compute the average clustering coefficient
+    #variable x 4
+    avg_clustering_parallel_GM = sum(clustering_results_GM) / len(clustering_results_GM)
+    print(avg_clustering_parallel_GM)
 
-#         with tqdm(total=len(nodes)) as pbar:
-#                 clustering_results_GM = []
+# Save the results to a text file
+#variable x 3
+file_clustering = open("clustering_resultsGM.txt", "w")
+with open("clustering_resultsGM.txt", "w") as file:
+    for value in clustering_results_GM:
+        file_clustering.write(f"{value}\n")  # Each float on a new line
+file_clustering.close()
 
-#                 for result in pool.imap_unordered(local_clustering, nodes):
-#                     #variable
-#                     clustering_results_GM.append(result)
-#                     pbar.update(1)
-
-#     #compute the average clustering coefficient
-#     #variable x 4
-#     avg_clustering_parallel_GM = sum(clustering_results_GM) / len(clustering_results_GM)
-#     print(avg_clustering_parallel_GM)
-
-
-# # Save the results to a text file
-# #variable x 3
-# file_clustering = open("clustering_resultsGM.txt", "w")
-# with open("clustering_resultsGM.txt", "w") as file:
-#     for value in clustering_results_GM:
-#         file_clustering.write(f"{value}\n")  # Each float on a new line
-# file_clustering.close()
-
-# # Save as a NumPy binary file
-# #variable x 2
-# np.save("clustering_resultsGM.npy", clustering_results_GM)
+# Save as a NumPy binary file
+#variable x 2
+np.save("clustering_resultsGM.npy", clustering_results_GM)
 
 #%%
 #Load the NumPy binary file
@@ -241,8 +237,8 @@ clustering_results_KBM= np.load("clustering_resultsKBM.npy")
 
 #HMCE and NHEK
 #NOTE: NON ANCORA OTTENUTI
-clustering_results_HMEC= np.load("clustering_resultsHMEC.npy")
-clustering_results_NHEK= np.load("clustering_resultsNHEK.npy")
+#clustering_results_HMEC= np.load("clustering_resultsHMEC.npy")
+#clustering_results_NHEK= np.load("clustering_resultsNHEK.npy")
 
 #Histogram of clustering coefficients
 
