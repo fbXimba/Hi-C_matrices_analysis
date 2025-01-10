@@ -40,5 +40,5 @@ The repository contains the following files:
 - _utils.py_ : definition of all function used in _complex.py_
 - _Data_ : folder containing all data used in this work
 - _Plots_ : folder containing obtained plots
--_clustering_result_ : npy files containing the results of the clustering coefficent function
+- _clustering_result_ : npy files containing the results of the clustering coefficent function
  
