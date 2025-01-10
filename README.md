@@ -23,7 +23,7 @@ The results of this function applied to the analyzed matrices can be found in th
 - [os](https://docs.python.org/3/library/os.html)
 - [pandas](https://pandas.pydata.org/)
 - [numpy](https://numpy.org)
-- [matplotlib.pyplot](https://matplotlib.org/stable/api/pyplot_summary.html)
+- [matplotlib](https://matplotlib.org/stable/api/matplotlib_configuration_api.html)
 - [networkx](https://networkx.org/documentation/stable/install.html)
 - [time](https://docs.python.org/3/library/time.html)
 - [multiprocessing](https://docs.python.org/3/library/multiprocessing.html)
@@ -37,8 +37,8 @@ The repository contains the following files:
 
 - _complex.py_ : runs the program and saves the plots in the Plots folder
 - _construction_site.py_ : definition of the function used for the adjacency matrix constrtuction
-- _utils.py_ : definition of all function used in _complex.py_
-- _Data_ : folder containing all data used in this work
-- _Plots_ : folder containing obtained plots
+- _utils.py_ : definition of all the functions used in _complex.py_
+- _Data_ : folder containing all the data used for this project
+- _Plots_ : folder containing all the obtained plots, divided in subfolders per topic
 - _clustering_result_ : npy files containing the results of the clustering coefficent function
  
