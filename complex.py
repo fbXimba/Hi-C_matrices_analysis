@@ -4,10 +4,6 @@ import os
 import pandas as pd
 import numpy as np 
 import matplotlib.pyplot as plt
-#import matplotlib.gridspec as gridspec
-#from scipy.stats import pearsonr
-#import math
-#import random as rnd
 import networkx as nx
 import time as tm
 from multiprocessing import Pool
@@ -18,7 +14,6 @@ import construction_site as cs
 import leidenalg
 import igraph as ig
 
-#NOTE: This code is currently a work in progress in its initial stages. NO BITCHING.
 
 #%%
 #directories and data import/creation
@@ -236,28 +231,38 @@ clustering_results_GM= np.load("clustering_resultsGM.npy")
 clustering_results_KBM= np.load("clustering_resultsKBM.npy")
 
 #HMCE and NHEK
-#NOTE: NON ANCORA OTTENUTI
-#clustering_results_HMEC= np.load("clustering_resultsHMEC.npy")
-#clustering_results_NHEK= np.load("clustering_resultsNHEK.npy")
+clustering_results_HMEC= np.load("clustering_resultsHMEC.npy")
+clustering_results_NHEK= np.load("clustering_resultsNHEK.npy")
 
 #Histogram of clustering coefficients
-
-#GM12878
 #conditions for log10: remove zeros
+#GM12878
 cl_coeff_GM=np.array(clustering_results_GM)
 cl_coeff_GM_n0=cl_coeff_GM[cl_coeff_GM>0]
 
-plt.hist(cl_coeff_GM_n0, bins=300)
-plt.xlabel("clustering coefficient")
-title="histogram clustering coefficient GM normalized"
-plt.title(title)
-utils.save_plot(plt,dir_cluster, title)
+utils.cluster_hist(cl_coeff_GM_n0, "GM12878", dir_cluster)
 
-plt.hist(np.log10(cl_coeff_GM_n0), bins=300)
-plt.xlabel("log_10(clustering coefficient)")
-title="histogram log clustering coefficient GM normalized"
-plt.title(title)
-utils.save_plot(plt,dir_cluster, title)
+#KBM7
+cl_coeff_KBM=np.array(clustering_results_KBM)
+cl_coeff_KBM_n0=cl_coeff_KBM[cl_coeff_KBM>0]
+
+utils.cluster_hist(cl_coeff_KBM_n0, "KBM7", dir_cluster)
+
+#HMEC
+cl_coeff_HMEC=np.array(clustering_results_HMEC)
+cl_coeff_HMEC_n0=cl_coeff_HMEC[cl_coeff_HMEC>0]
+
+utils.cluster_hist(cl_coeff_HMEC_n0, "HMEC", dir_cluster)
+
+#NHEK
+cl_coeff_NHEK=np.array(clustering_results_NHEK)
+cl_coeff_NHEK_n0=cl_coeff_NHEK[cl_coeff_NHEK>0]
+
+utils.cluster_hist(cl_coeff_NHEK_n0, "NHEK", dir_cluster)
+
+
+#comparison of mean cluestering coefficient
+print(np.mean(cl_coeff_GM_n0), np.mean(cl_coeff_KBM_n0), np.mean(cl_coeff_HMEC_n0), np.mean(cl_coeff_NHEK_n0))
 
 #%%
 #Spectral analysis of matrices
