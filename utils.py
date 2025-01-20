@@ -125,6 +125,25 @@ def stregth(G):
 #
 #    return clustering_results,avg_clustering_parallel
 
+#############################################################################################
+#clusering coefficients plot
+
+def cluster_hist(coefficients,cell,dir):
+    
+    plt.hist(coefficients, bins=300)
+    plt.xlabel("clustering coefficient")
+    title=f'histogram clustering coefficient {cell} normalized'
+    plt.title(title)
+    save_plot(plt,dir, title)
+    
+    plt.hist(np.log10(coefficients), bins=300)
+    plt.xlabel("log_10(clustering coefficient)")
+    title=f'histogram log clustering coefficient {cell} normalized'
+    plt.title(title)
+    save_plot(plt,dir, title)
+    
+    return
+
 ############################################################################################
 #cleaning indexes to match the cleaned data
 
@@ -136,7 +155,6 @@ def clean_indexing(matrix):
         if np.all(matrix[i] == 0) and i not in ind:
             ind.append(i)
     return ind
-
 
 ############################################################################################
 #adajacency matrix
