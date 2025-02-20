@@ -148,28 +148,28 @@ print(np.min(str_NHEK), np.max(str_NHEK), np.mean(str_NHEK))
 t4=tm.time()
 
 #GM12878
-plt.hist(str_GM, bins=400)
+plt.hist(str_GM, bins=100)
 plt.xlabel("log_10(strength)")
 title="strength histogram GM normalized"
 plt.title(title)
 utils.save_plot(plt,dir_centrality, title)
 
 #KBM7
-plt.hist(str_KBM, bins=400)
+plt.hist(str_KBM, bins=100)
 plt.xlabel("log_10(strength)")
 title="strength histogram KBM normalized"
 plt.title(title)
 utils.save_plot(plt,dir_centrality, title)
 
 #HMEC
-plt.hist(str_HMEC, bins=400)
+plt.hist(str_HMEC, bins=100)
 plt.xlabel("log_10(strength)")
 title="strength histogram HMEC normalized"
 plt.title(title)
 utils.save_plot(plt,dir_centrality, title)
 
 #NHEK
-plt.hist(str_NHEK, bins=400)
+plt.hist(str_NHEK, bins=100)
 plt.xlabel("log_10(strength)")
 title="strength histogram NHEK normalized"
 plt.title(title)
@@ -351,7 +351,7 @@ plt.xlabel("eigenvalues")
 plt.ylabel("Density")
 title="Spectral density comparison GM12878 and KBM7"
 plt.title(title)
-utils.save_plot(plt,dir_centrality, title)
+utils.save_plot(plt,dir_spec_an, title)
 
 
 plt.hist(eigvals_GM[eigvals_GM<100], bins=150, density = True, histtype= 'step', color="r", label='GM12878')
@@ -363,7 +363,7 @@ plt.xlabel("eigenvalues")
 plt.ylabel("Density")
 title="Spectral density comparison"
 plt.title(title)
-utils.save_plot(plt,dir_centrality, title)
+utils.save_plot(plt,dir_spec_an, title)
 
 #%%
 #Eigenvectors component distribution
