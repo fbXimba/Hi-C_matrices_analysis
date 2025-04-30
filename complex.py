@@ -9,7 +9,7 @@ import time as tm
 from multiprocessing import Pool
 from tqdm import tqdm 
 from numpy import linalg as LA
-import utils as utils
+import utils
 import construction_site as cs
 import leidenalg
 import igraph as ig
@@ -394,7 +394,7 @@ chro2=utils.dict_indexing(dataHMEC0,chromosomes_HMEC_NHEK[:,0],chromosomes_HMEC_
      
 # %%
 #Eigenvectors analysis
-#GM12878 and KBM7, eigenvectors 1, 9 and 15
+#GM12878 and KBM7, eigenvectors 1, 9, 15 and 100
 #plotting the chromosomes for some eigenvalues with sections for each chromosome
 print("plots of eigenvector analysis")
 cmap = plt.get_cmap('nipy_spectral')
@@ -402,8 +402,8 @@ colors = [cmap(i) for i in np.linspace(0, 1, 23)]
 
 for eigenvectors in [[eigenvectors_GM_norm,"GM12878"], [eigenvectors_KBM_norm,"KBM7"]]:
     #GM12878 and KBM7
-    for n in [0,8,14]:
-        #eigenvectors 1, 9 and 15
+    for n in [0,8,14,99]:
+        #eigenvectors 1, 9 ,15 and 100
         for i, color in enumerate(colors, start=0):
             #each chromosome
             r=chro1[dfchr["chr"][i]]
@@ -522,20 +522,20 @@ utils.compute_essential_matrix(eigenvalues_NHEK_norm, eigenvectors_NHEK_norm, 37
 print("binarization using different threshold per matrix")
 
 #GM12878
-dataGM_bin=utils.thresholding(dataGM_normalized, 4.7)
-utils.plot_adjacency_matrix(dataGM_bin, "GM12878", "threshold 4.7", 'plasma',dir_adj_mat)
+dataGM_bin=utils.thresholding(dataGM_normalized, 5.4)
+utils.plot_adjacency_matrix(dataGM_bin, "GM12878", "threshold 5.4", 'plasma',dir_adj_mat)
 
 #KBM7
-dataKBM_bin=utils.thresholding(dataKBM_normalized, 4.7)
-utils.plot_adjacency_matrix(dataKBM_bin, "KBM7", "threshold 4.7", 'plasma',dir_adj_mat)
+dataKBM_bin=utils.thresholding(dataKBM_normalized, 5)
+utils.plot_adjacency_matrix(dataKBM_bin, "KBM7", "threshold 5", 'plasma',dir_adj_mat)
 
 #HMEC
-dataHMEC_bin=utils.thresholding(dataHMEC_normalized, 4.1)
-utils.plot_adjacency_matrix(dataHMEC_bin, "HMEC", "threshold 4.1", 'plasma',dir_adj_mat)
+dataHMEC_bin=utils.thresholding(dataHMEC_normalized, 4.5)
+utils.plot_adjacency_matrix(dataHMEC_bin, "HMEC", "threshold 4.5", 'plasma',dir_adj_mat)
 
 #NHEK
-dataNHEK_bin=utils.thresholding(dataNHEK_normalized, 4.3)
-utils.plot_adjacency_matrix(dataNHEK_bin, "NHEK", "threshold 4.3", 'plasma',dir_adj_mat)
+dataNHEK_bin=utils.thresholding(dataNHEK_normalized, 4.8)
+utils.plot_adjacency_matrix(dataNHEK_bin, "NHEK", "threshold 4.8", 'plasma',dir_adj_mat)
 
 # %%
 #binary graphs and clustering

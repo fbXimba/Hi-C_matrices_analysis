@@ -130,13 +130,13 @@ def stregth(G):
 
 def cluster_hist(coefficients,cell,dir):
     
-    plt.hist(coefficients, bins=100)
+    plt.hist(coefficients, bins=70)
     plt.xlabel("clustering coefficient")
     title=f'histogram clustering coefficient {cell} normalized'
     plt.title(title)
     save_plot(plt,dir, title)
     
-    plt.hist(np.log10(coefficients), bins=100)
+    plt.hist(np.log10(coefficients), bins=80)
     plt.xlabel("log_10(clustering coefficient)")
     title=f'histogram log clustering coefficient {cell} normalized'
     plt.title(title)
