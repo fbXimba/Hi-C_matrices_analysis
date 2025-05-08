@@ -128,6 +128,8 @@ G_NHEK= nx.from_numpy_array(dataNHEK_normalized)
 #Strength of nodes
 t3=tm.time()
 print("strength and its histograms")
+
+print("min , max and mean values of strength")
 #GM12878
 str_GM=utils.stregth(G_GM)
 print(np.min(str_GM), np.max(str_GM), np.mean(str_GM)) #check min and max values
@@ -208,7 +210,7 @@ if __name__ == "__main__":
     #compute the average clustering coefficient
     #variable x 4
     avg_clustering_parallel_GM = sum(clustering_results_GM) / len(clustering_results_GM)
-    print(avg_clustering_parallel_GM)
+    print("average clustering coefficient",avg_clustering_parallel_GM)
 
 # Save the results to a text file
 #variable x 3
@@ -262,7 +264,7 @@ utils.cluster_hist(cl_coeff_NHEK_n0, "NHEK", dir_cluster)
 
 
 #comparison of mean cluestering coefficient
-print(np.mean(cl_coeff_GM_n0), np.mean(cl_coeff_KBM_n0), np.mean(cl_coeff_HMEC_n0), np.mean(cl_coeff_NHEK_n0))
+print("mean clustering coefficients:",np.mean(cl_coeff_GM_n0), np.mean(cl_coeff_KBM_n0), np.mean(cl_coeff_HMEC_n0), np.mean(cl_coeff_NHEK_n0))
 
 #%%
 #Spectral analysis of matrices
@@ -271,7 +273,7 @@ print("spectral analysis")
 
 #GM12878
 eigenvalues_GM_norm, eigenvectors_GM_norm = LA.eigh(dataGM_normalized)
-print(np.max(eigenvalues_GM_norm))
+print("max eigenvalue GM12878",np.max(eigenvalues_GM_norm))
 
 eigenvalues_GM_norm=eigenvalues_GM_norm[::-1]
 eigenvectors_GM_norm=np.transpose(eigenvectors_GM_norm)
@@ -279,7 +281,7 @@ eigenvectors_GM_norm=eigenvectors_GM_norm[::-1]
 
 #KBM7
 eigenvalues_KBM_norm, eigenvectors_KBM_norm = LA.eigh(dataKBM_normalized)
-print(np.max(eigenvalues_KBM_norm))
+print("max eigenvalue KBM7",np.max(eigenvalues_KBM_norm))
 
 eigenvalues_KBM_norm=np.sort(eigenvalues_KBM_norm)[::-1]
 eigenvectors_KBM_norm=np.transpose(eigenvectors_KBM_norm)
@@ -287,7 +289,7 @@ eigenvectors_KBM_norm=eigenvectors_KBM_norm[::-1]
 
 #HMEC
 eigenvalues_HMEC_norm, eigenvectors_HMEC_norm = LA.eigh(dataHMEC_normalized)
-print(np.max(eigenvalues_HMEC_norm))
+print("max eigenvalue HMEC",np.max(eigenvalues_HMEC_norm))
 
 eigenvalues_HMEC_norm=np.sort(eigenvalues_HMEC_norm)[::-1]
 eigenvectors_HMEC_norm=np.transpose(eigenvectors_HMEC_norm)
@@ -295,7 +297,7 @@ eigenvectors_HMEC_norm=eigenvectors_HMEC_norm[::-1]
 
 #NHEK
 eigenvalues_NHEK_norm, eigenvectors_NHEK_norm = LA.eigh(dataNHEK_normalized)
-print(np.max(eigenvalues_NHEK_norm))
+print("max eigenvalue NHEK",np.max(eigenvalues_NHEK_norm))
 
 eigenvalues_NHEK_norm=np.sort(eigenvalues_NHEK_norm)[::-1]
 eigenvectors_NHEK_norm=np.transpose(eigenvectors_NHEK_norm)
@@ -470,7 +472,7 @@ for i in l_ranges:
     plt.semilogy(list(range(i[0]+1,i[1]+1)), IPR_NHEK[i[0]:i[1]],lw=0.6, ls='-', color="y", label="NHEK")
     plt.xlabel("eigenvectors")
     plt.ylabel("log10(IPR)")
-    title=f"IPR comparison GM12878 and KBM7 - {i[2]} eigenvectors"
+    title=f"IPR comparison GM12878, KBM7, HMEC and NHEK - {i[2]} eigenvectors"
     plt.legend(loc="best")
     plt.title(title)
     utils.save_plot(plt,dir_IPR, title)
@@ -565,7 +567,7 @@ mod_HMEC = part_HMEC.modularity
 part_NHEK = leidenalg.find_partition(Gbin_NHEK, leidenalg.ModularityVertexPartition)
 mod_NHEK = part_NHEK.modularity
 
-print(mod_GM, mod_KBM, mod_HMEC, mod_NHEK)
+#print(mod_GM, mod_KBM, mod_HMEC, mod_NHEK)
 #%%
 #Visualization of community adjacency matrix
 print("communities visualization and scatter plots")
@@ -605,6 +607,15 @@ utils.cluster_scatter(part_GM, chro1, dfchr["chr"], "GM12878",dir_commun)
 utils.cluster_scatter(part_KBM, chro1, dfchr["chr"], "KBM7",dir_commun)
 utils.cluster_scatter(part_HMEC, chro2, chromosomes_HMEC_NHEK[:,0], "HMEC",dir_commun)
 utils.cluster_scatter(part_NHEK, chro2, chromosomes_HMEC_NHEK[:,0], "NHEK",dir_commun)
+
+#%%printing values
+
+print("number communities with and without isolated nodes")
+print( len(community_GM), len([comm for comm in community_GM if len(comm) != 1]))
+print( len(community_KBM), len([comm for comm in community_KBM if len(comm) != 1]))
+print( len(community_HMEC), len([comm for comm in community_HMEC if len(comm) != 1]))
+print( len(community_NHEK), len([comm for comm in community_NHEK if len(comm) != 1]))
+
 
 print("end of program")
 print("plots are saved in plots folder divided according to type")
